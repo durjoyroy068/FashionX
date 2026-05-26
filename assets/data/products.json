@@ -1,0 +1,528 @@
+[
+  {
+    "id": "prod_001",
+    "name": "Silk Evening Gown — Midnight Cascade",
+    "brand": "Maison Élise",
+    "brandId": "br_001",
+    "sellerId": "sel_001",
+    "price": 4800,
+    "discountPrice": 4200,
+    "category": "custom-fashion",
+    "rating": 4.9,
+    "reviewCount": 47,
+    "stock": 3,
+    "featured": true,
+    "badges": [
+      "Limited",
+      "New"
+    ],
+    "description": "Hand-stitched French silk evening gown with cascading train. Bespoke tailoring available.",
+    "materials": "100% Mulberry Silk, Crystal Embellishments",
+    "packaging": "Signature gold-foil presentation box with garment bag",
+    "images": [
+      "https://images.pexels.com/photos/1045547/pexels-photo-1045547.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "https://images.pexels.com/photos/15390081/pexels-photo-15390081.jpeg?auto=compress&cs=tinysrgb&w=800"
+    ],
+    "variants": [
+      "XS",
+      "S",
+      "M",
+      "L"
+    ],
+    "deliveryDays": "5-7",
+    "createdAt": "2025-11-01"
+  },
+  {
+    "id": "prod_002",
+    "name": "Chronos Elite Tourbillon 41mm",
+    "brand": "Chronos Elite",
+    "brandId": "br_003",
+    "sellerId": "sel_003",
+    "price": 28500,
+    "discountPrice": null,
+    "category": "watches",
+    "rating": 5,
+    "reviewCount": 23,
+    "stock": 2,
+    "featured": true,
+    "badges": [
+      "Limited"
+    ],
+    "description": "Swiss-made tourbillon movement with 72-hour power reserve. Sapphire crystal caseback.",
+    "materials": "18K Rose Gold, Alligator Leather Strap",
+    "packaging": "Walnut presentation case with certificate of authenticity",
+    "images": [
+      "https://images.pexels.com/photos/190819/pexels-photo-190819.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "https://images.pexels.com/photos/2783873/pexels-photo-2783873.jpeg?auto=compress&cs=tinysrgb&w=800"
+    ],
+    "variants": [
+      "Rose Gold",
+      "Platinum"
+    ],
+    "deliveryDays": "10-14",
+    "createdAt": "2025-10-15"
+  },
+  {
+    "id": "prod_003",
+    "name": "Noir Absolu Eau de Parfum 100ml",
+    "brand": "Noir Parfums",
+    "brandId": "br_004",
+    "sellerId": "sel_004",
+    "price": 385,
+    "discountPrice": 340,
+    "category": "perfumes",
+    "rating": 4.8,
+    "reviewCount": 312,
+    "stock": 45,
+    "featured": true,
+    "badges": [
+      "Bestseller"
+    ],
+    "description": "Oud, black truffle, and aged vanilla. A signature scent of modern luxury.",
+    "materials": "Natural Oud, Vanilla Absolute, Bergamot",
+    "packaging": "Matte black lacquer bottle in velvet-lined case",
+    "images": [
+      "https://images.pexels.com/photos/3373719/pexels-photo-3373719.jpeg?auto=compress&cs=tinysrgb&w=800"
+    ],
+    "variants": [
+      "50ml",
+      "100ml"
+    ],
+    "deliveryDays": "3-5",
+    "createdAt": "2025-12-01"
+  },
+  {
+    "id": "prod_004",
+    "name": "Velour Signature Oxford — Cognac",
+    "brand": "Velour Atelier",
+    "brandId": "br_002",
+    "sellerId": "sel_002",
+    "price": 1290,
+    "discountPrice": null,
+    "category": "shoes",
+    "rating": 4.9,
+    "reviewCount": 89,
+    "stock": 12,
+    "featured": true,
+    "badges": [
+      "Bestseller"
+    ],
+    "description": "Hand-burnished Italian calfskin oxford with Goodyear welt construction.",
+    "materials": "Full-Grain Calfskin, Leather Sole",
+    "packaging": "Premium shoe trees and dust bags included",
+    "images": [
+      "https://images.pexels.com/photos/1598505/pexels-photo-1598505.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "https://images.pexels.com/photos/298845/pexels-photo-298845.jpeg?auto=compress&cs=tinysrgb&w=800"
+    ],
+    "variants": [
+      "40",
+      "41",
+      "42",
+      "43",
+      "44"
+    ],
+    "deliveryDays": "5-8",
+    "createdAt": "2025-09-20"
+  },
+  {
+    "id": "prod_005",
+    "name": "Lumière Titanium Aviator — Onyx",
+    "brand": "Lumière Optique",
+    "brandId": "br_005",
+    "sellerId": "sel_005",
+    "price": 890,
+    "discountPrice": 790,
+    "category": "sunglasses",
+    "rating": 4.7,
+    "reviewCount": 56,
+    "stock": 18,
+    "featured": false,
+    "badges": [
+      "New"
+    ],
+    "description": "Japanese beta-titanium frame with polarized Zeiss lenses.",
+    "materials": "Beta-Titanium, Zeiss Polarized Lenses",
+    "packaging": "Carbon fiber case with microfiber cloth",
+    "images": [
+      "https://images.pexels.com/photos/157627/pexels-photo-157627.jpeg?auto=compress&cs=tinysrgb&w=800"
+    ],
+    "variants": [
+      "Onyx",
+      "Champagne"
+    ],
+    "deliveryDays": "4-6",
+    "createdAt": "2026-01-10"
+  },
+  {
+    "id": "prod_006",
+    "name": "Heritage Monogram Leather Tote",
+    "brand": "Heritage Vault",
+    "brandId": "br_006",
+    "sellerId": "sel_001",
+    "price": 3200,
+    "discountPrice": 2880,
+    "category": "accessories",
+    "rating": 4.8,
+    "reviewCount": 34,
+    "stock": 7,
+    "featured": true,
+    "badges": [
+      "Limited"
+    ],
+    "description": "Hand-painted monogram on full-grain leather. Numbered edition of 50.",
+    "materials": "Vegetable-Tanned Leather, Brass Hardware",
+    "packaging": "Heritage Vault signature trunk packaging",
+    "images": [
+      "https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg?auto=compress&cs=tinysrgb&w=800"
+    ],
+    "variants": [
+      "Black",
+      "Cognac"
+    ],
+    "deliveryDays": "7-10",
+    "createdAt": "2025-08-05"
+  },
+  {
+    "id": "prod_007",
+    "name": "Bespoke Cashmere Overcoat",
+    "brand": "Maison Élise",
+    "brandId": "br_001",
+    "sellerId": "sel_001",
+    "price": 5600,
+    "discountPrice": null,
+    "category": "custom-fashion",
+    "rating": 4.9,
+    "reviewCount": 18,
+    "stock": 5,
+    "featured": false,
+    "badges": [],
+    "description": "Double-faced cashmere overcoat with horn buttons. Made to order.",
+    "materials": "100% Mongolian Cashmere",
+    "packaging": "Bespoke garment bag with care kit",
+    "images": [
+      "https://images.pexels.com/photos/1532452/pexels-photo-1532452.jpeg?auto=compress&cs=tinysrgb&w=800"
+    ],
+    "variants": [
+      "S",
+      "M",
+      "L",
+      "XL"
+    ],
+    "deliveryDays": "14-21",
+    "createdAt": "2025-07-12"
+  },
+  {
+    "id": "prod_008",
+    "name": "Chronos Elite Chronograph Steel",
+    "brand": "Chronos Elite",
+    "brandId": "br_003",
+    "sellerId": "sel_003",
+    "price": 8900,
+    "discountPrice": 8200,
+    "category": "watches",
+    "rating": 4.8,
+    "reviewCount": 41,
+    "stock": 6,
+    "featured": true,
+    "badges": [
+      "Bestseller"
+    ],
+    "description": "Automatic chronograph with ceramic bezel and exhibition dial.",
+    "materials": "316L Steel, Ceramic Bezel",
+    "packaging": "Official Chronos Elite presentation box",
+    "images": [
+      "https://images.pexels.com/photos/2783873/pexels-photo-2783873.jpeg?auto=compress&cs=tinysrgb&w=800"
+    ],
+    "variants": [
+      "Steel",
+      "Black DLC"
+    ],
+    "deliveryDays": "7-10",
+    "createdAt": "2025-06-18"
+  },
+  {
+    "id": "prod_009",
+    "name": "Rose Éternelle Parfum 50ml",
+    "brand": "Noir Parfums",
+    "brandId": "br_004",
+    "sellerId": "sel_004",
+    "price": 295,
+    "discountPrice": null,
+    "category": "perfumes",
+    "rating": 4.7,
+    "reviewCount": 128,
+    "stock": 60,
+    "featured": false,
+    "badges": [],
+    "description": "Damask rose, white musk, and sandalwood. Feminine and timeless.",
+    "materials": "Rose Absolute, Sandalwood, Musk",
+    "packaging": "Rose gold cap with silk ribbon",
+    "images": [
+      "https://images.pexels.com/photos/965989/pexels-photo-965989.jpeg?auto=compress&cs=tinysrgb&w=800"
+    ],
+    "variants": [
+      "50ml"
+    ],
+    "deliveryDays": "3-5",
+    "createdAt": "2025-05-22"
+  },
+  {
+    "id": "prod_010",
+    "name": "Velour Chelsea Boot — Espresso",
+    "brand": "Velour Atelier",
+    "brandId": "br_002",
+    "sellerId": "sel_002",
+    "price": 980,
+    "discountPrice": 880,
+    "category": "shoes",
+    "rating": 4.8,
+    "reviewCount": 67,
+    "stock": 15,
+    "featured": false,
+    "badges": [
+      "New"
+    ],
+    "description": "Elastic-sided Chelsea in hand-antiqued leather with crepe sole.",
+    "materials": "Antiqued Calfskin, Crepe Rubber Sole",
+    "packaging": "Velour signature shoe box",
+    "images": [
+      "https://images.pexels.com/photos/298845/pexels-photo-298845.jpeg?auto=compress&cs=tinysrgb&w=800"
+    ],
+    "variants": [
+      "40",
+      "41",
+      "42",
+      "43"
+    ],
+    "deliveryDays": "5-8",
+    "createdAt": "2026-02-01"
+  },
+  {
+    "id": "prod_011",
+    "name": "Lumière Cat-Eye — Pearl",
+    "brand": "Lumière Optique",
+    "brandId": "br_005",
+    "sellerId": "sel_005",
+    "price": 720,
+    "discountPrice": null,
+    "category": "sunglasses",
+    "rating": 4.6,
+    "reviewCount": 29,
+    "stock": 22,
+    "featured": false,
+    "badges": [],
+    "description": "Acetate cat-eye frame with gradient lenses and gold accents.",
+    "materials": "Italian Acetate, UV400 Lenses",
+    "packaging": "Pearl white lacquer case",
+    "images": [
+      "https://images.pexels.com/photos/701877/pexels-photo-701877.jpeg?auto=compress&cs=tinysrgb&w=800"
+    ],
+    "variants": [
+      "Pearl",
+      "Tortoise"
+    ],
+    "deliveryDays": "4-6",
+    "createdAt": "2025-04-10"
+  },
+  {
+    "id": "prod_012",
+    "name": "Diamond Pavé Cuff Bracelet",
+    "brand": "Heritage Vault",
+    "brandId": "br_006",
+    "sellerId": "sel_001",
+    "price": 12500,
+    "discountPrice": null,
+    "category": "accessories",
+    "rating": 5,
+    "reviewCount": 12,
+    "stock": 2,
+    "featured": true,
+    "badges": [
+      "Limited"
+    ],
+    "description": "18K white gold cuff with 2.4ct pavé diamonds. Certificate included.",
+    "materials": "18K White Gold, VS1 Diamonds",
+    "packaging": "Biometric-safe luxury case",
+    "images": [
+      "https://images.pexels.com/photos/1926769/pexels-photo-1926769.jpeg?auto=compress&cs=tinysrgb&w=800"
+    ],
+    "variants": [
+      "One Size"
+    ],
+    "deliveryDays": "10-14",
+    "createdAt": "2025-03-08"
+  },
+  {
+    "id": "prod_013",
+    "name": "Structured Blazer — Ivory",
+    "brand": "Maison Élise",
+    "brandId": "br_001",
+    "sellerId": "sel_001",
+    "price": 2100,
+    "discountPrice": 1890,
+    "category": "custom-fashion",
+    "rating": 4.7,
+    "reviewCount": 38,
+    "stock": 8,
+    "featured": false,
+    "badges": [
+      "Bestseller"
+    ],
+    "description": "Tailored wool-silk blend blazer with peak lapels and silk lining.",
+    "materials": "70% Wool, 30% Silk",
+    "packaging": "Maison Élise garment box",
+    "images": [
+      "https://images.pexels.com/photos/1453005/pexels-photo-1453005.jpeg?auto=compress&cs=tinysrgb&w=800"
+    ],
+    "variants": [
+      "XS",
+      "S",
+      "M",
+      "L"
+    ],
+    "deliveryDays": "5-7",
+    "createdAt": "2025-11-20"
+  },
+  {
+    "id": "prod_014",
+    "name": "Heritage Archive Sneaker — No. 1",
+    "brand": "Heritage Vault",
+    "brandId": "br_006",
+    "sellerId": "sel_002",
+    "price": 1850,
+    "discountPrice": null,
+    "category": "limited-edition",
+    "rating": 4.9,
+    "reviewCount": 8,
+    "stock": 1,
+    "featured": true,
+    "badges": [
+      "Limited"
+    ],
+    "description": "Collaboration piece. Hand-numbered 1 of 100. Authenticated by FashionX.",
+    "materials": "Premium Leather, Gold Hardware",
+    "packaging": "Display case with authentication card",
+    "images": [
+      "https://images.pexels.com/photos/2526878/pexels-photo-2526878.jpeg?auto=compress&cs=tinysrgb&w=800"
+    ],
+    "variants": [
+      "42",
+      "43",
+      "44"
+    ],
+    "deliveryDays": "7-10",
+    "createdAt": "2026-01-05"
+  },
+  {
+    "id": "prod_015",
+    "name": "Velour Loafer — Black Patent",
+    "brand": "Velour Atelier",
+    "brandId": "br_002",
+    "sellerId": "sel_002",
+    "price": 1150,
+    "discountPrice": null,
+    "category": "shoes",
+    "rating": 4.8,
+    "reviewCount": 52,
+    "stock": 0,
+    "featured": false,
+    "badges": [],
+    "description": "Patent leather loafer with hand-stitched apron toe.",
+    "materials": "Patent Calfskin",
+    "packaging": "Velour dust bag and box",
+    "images": [
+      "https://images.pexels.com/photos/1598505/pexels-photo-1598505.jpeg?auto=compress&cs=tinysrgb&w=800"
+    ],
+    "variants": [
+      "41",
+      "42",
+      "43"
+    ],
+    "deliveryDays": "5-8",
+    "createdAt": "2025-02-14"
+  },
+  {
+    "id": "prod_016",
+    "name": "Noir Collection Gift Set",
+    "brand": "Noir Parfums",
+    "brandId": "br_004",
+    "sellerId": "sel_004",
+    "price": 890,
+    "discountPrice": 750,
+    "category": "perfumes",
+    "rating": 4.9,
+    "reviewCount": 76,
+    "stock": 25,
+    "featured": true,
+    "badges": [
+      "Bestseller",
+      "Limited"
+    ],
+    "description": "Three signature fragrances in travel size with leather case.",
+    "materials": "Assorted Natural Essences",
+    "packaging": "Leather travel case with gold embossing",
+    "images": [
+      "https://images.pexels.com/photos/3373719/pexels-photo-3373719.jpeg?auto=compress&cs=tinysrgb&w=800"
+    ],
+    "variants": [
+      "Standard"
+    ],
+    "deliveryDays": "3-5",
+    "createdAt": "2025-12-15"
+  },
+  {
+    "id": "prod_017",
+    "name": "Chronos Elite Dress Watch",
+    "brand": "Chronos Elite",
+    "brandId": "br_003",
+    "sellerId": "sel_003",
+    "price": 6200,
+    "discountPrice": 5800,
+    "category": "watches",
+    "rating": 4.7,
+    "reviewCount": 31,
+    "stock": 4,
+    "featured": false,
+    "badges": [
+      "New"
+    ],
+    "description": "Ultra-thin dress watch with guilloché dial and alligator strap.",
+    "materials": "Steel Case, Guilloché Dial",
+    "packaging": "Official warranty and box",
+    "images": [
+      "https://images.pexels.com/photos/190819/pexels-photo-190819.jpeg?auto=compress&cs=tinysrgb&w=800"
+    ],
+    "variants": [
+      "Silver",
+      "Gold"
+    ],
+    "deliveryDays": "7-10",
+    "createdAt": "2026-02-10"
+  },
+  {
+    "id": "prod_018",
+    "name": "Silk Scarf — Art Deco Print",
+    "brand": "Maison Élise",
+    "brandId": "br_001",
+    "sellerId": "sel_001",
+    "price": 480,
+    "discountPrice": null,
+    "category": "accessories",
+    "rating": 4.6,
+    "reviewCount": 94,
+    "stock": 35,
+    "featured": false,
+    "badges": [],
+    "description": "Hand-rolled silk twill scarf with exclusive Art Deco print.",
+    "materials": "100% Silk Twill",
+    "packaging": "Gift envelope with ribbon",
+    "images": [
+      "https://images.pexels.com/photos/3764531/pexels-photo-3764531.jpeg?auto=compress&cs=tinysrgb&w=800"
+    ],
+    "variants": [
+      "90cm"
+    ],
+    "deliveryDays": "3-5",
+    "createdAt": "2025-10-01"
+  }
+]

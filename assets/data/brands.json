@@ -1,0 +1,56 @@
+[
+  {
+    "id": "br_001",
+    "name": "Maison Élise",
+    "logo": "https://images.pexels.com/photos/3184296/pexels-photo-3184296.jpeg?auto=compress&cs=tinysrgb&w=200",
+    "description": "Parisian haute couture house renowned for bespoke evening wear and artisanal craftsmanship since 1987.",
+    "country": "France",
+    "verified": true,
+    "productCount": 42
+  },
+  {
+    "id": "br_002",
+    "name": "Velour Atelier",
+    "logo": "https://images.pexels.com/photos/3184296/pexels-photo-3184296.jpeg?auto=compress&cs=tinysrgb&w=200",
+    "description": "Italian luxury footwear atelier combining traditional leathercraft with contemporary silhouettes.",
+    "country": "Italy",
+    "verified": true,
+    "productCount": 28
+  },
+  {
+    "id": "br_003",
+    "name": "Chronos Elite",
+    "logo": "https://images.pexels.com/photos/3184296/pexels-photo-3184296.jpeg?auto=compress&cs=tinysrgb&w=200",
+    "description": "Swiss horological excellence. Limited production timepieces for discerning collectors worldwide.",
+    "country": "Switzerland",
+    "verified": true,
+    "productCount": 15
+  },
+  {
+    "id": "br_004",
+    "name": "Noir Parfums",
+    "logo": "https://images.pexels.com/photos/3184296/pexels-photo-3184296.jpeg?auto=compress&cs=tinysrgb&w=200",
+    "description": "Niche fragrance house crafting olfactory narratives from rare botanicals and aged essences.",
+    "country": "France",
+    "verified": true,
+    "productCount": 19
+  },
+  {
+    "id": "br_005",
+    "name": "Lumière Optique",
+    "logo": "https://images.pexels.com/photos/3184296/pexels-photo-3184296.jpeg?auto=compress&cs=tinysrgb&w=200",
+    "description": "Handcrafted eyewear merging Japanese titanium engineering with European design sensibility.",
+    "country": "Japan",
+    "verified": true,
+    "productCount": 11
+  },
+  {
+    "id": "br_006",
+    "name": "Heritage Vault",
+    "logo": "https://images.pexels.com/photos/3184296/pexels-photo-3184296.jpeg?auto=compress&cs=tinysrgb&w=200",
+    "description": "Curators of authenticated limited edition luxury collectibles and investment-grade fashion pieces.",
+    "country": "UK",
+    "verified": true,
+    "productCount": 9
+  }
+]

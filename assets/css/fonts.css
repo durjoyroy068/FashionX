@@ -1,0 +1,43 @@
+/**
+ * Font loading is handled via non-blocking <link> tags in HTML (preconnect + preload).
+ * This file defines fallbacks and font-display behavior for premium typography.
+ */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local("Inter"), local("Segoe UI"), local("Helvetica Neue"), local("Arial");
+}
+
+@font-face {
+  font-family: "Cormorant Garamond";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: local("Cormorant Garamond"), local("Georgia"), local("Times New Roman");
+}
+
+@font-face {
+  font-family: "Montserrat";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: local("Montserrat"), local("Segoe UI"), local("Helvetica Neue"), local("Arial");
+}
+
+html.fonts-pending body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+html.fonts-pending .logo,
+html.fonts-pending h1,
+html.fonts-pending h2,
+html.fonts-pending .section-title,
+html.fonts-pending .loader-logo {
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+html.fonts-ready body {
+  font-family: var(--font-body);
+}

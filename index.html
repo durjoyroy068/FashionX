@@ -1,0 +1,154 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="FashionX - Premium luxury fashion marketplace. Designer clothing, watches, perfumes, and exclusive collections.">
+  <title>FashionX — Luxury Fashion Marketplace</title>
+  <link rel="stylesheet" href="./assets/css/main.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>FX</text></svg>">
+</head>
+<body data-page="home">
+  <header class="site-header" id="site-header" data-base="."></header>
+
+  <main class="page-main" id="main-content">
+    <section class="hero">
+      <div class="hero-bg"></div>
+      <div class="container hero-content reveal visible">
+        <p class="hero-label">Luxury Redefined</p>
+        <h1>Where Elegance Meets Exclusivity</h1>
+        <p>Discover authenticated luxury fashion from the world's most prestigious brands and verified sellers.</p>
+        <div class="hero-actions">
+          <a href="./pages/shop.html" class="btn btn-primary">Explore Collection</a>
+          <a href="./bid/index.html" class="btn btn-outline">FashionX Bid Live</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-header reveal">
+          <p class="section-label">Curated</p>
+          <h2 class="section-title">Featured Collections</h2>
+          <p class="section-desc">Handpicked luxury pieces from our verified designer partners</p>
+        </div>
+        <div class="grid-4" id="featured-products"></div>
+        <div style="text-align:center;margin-top:2rem"><a href="./pages/shop.html" class="btn btn-outline">View All Collections</a></div>
+      </div>
+    </section>
+
+    <section class="section" style="background:var(--color-bg-elevated)">
+      <div class="container">
+        <div class="section-header reveal">
+          <p class="section-label">Trending</p>
+          <h2 class="section-title">Most Coveted</h2>
+        </div>
+        <div class="grid-4" id="trending-products"></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container promo-banner reveal">
+        <div class="promo-banner-content">
+          <p class="section-label">Limited Edition</p>
+          <h2>Exclusive Drops</h2>
+          <p style="color:var(--color-text-muted);margin:1rem 0 1.5rem">Authenticated rare pieces available only on FashionX. Once gone, never restocked.</p>
+          <a href="./pages/shop.html?badge=Limited" class="btn btn-primary">Shop Limited</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" style="background:var(--color-bg-elevated)">
+      <div class="container">
+        <div class="section-header reveal">
+          <p class="section-label">FashionX Bid</p>
+          <h2 class="section-title">Live Luxury Auctions</h2>
+          <p class="section-desc">Bid on authenticated rare fashion and collectibles in real-time</p>
+        </div>
+        <div class="bid-grid" id="live-auctions"></div>
+        <div style="text-align:center;margin-top:2rem"><a href="./bid/index.html" class="btn btn-primary">Enter Auction House</a></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-header reveal">
+          <p class="section-label">Best Sellers</p>
+          <h2 class="section-title">Client Favorites</h2>
+        </div>
+        <div class="grid-4" id="bestseller-products"></div>
+      </div>
+    </section>
+
+    <section class="section" id="recently-section" style="background:var(--color-bg-elevated)">
+      <div class="container">
+        <div class="section-header reveal">
+          <h2 class="section-title">Recently Viewed</h2>
+        </div>
+        <div class="grid-4" id="recently-viewed"></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-header reveal">
+          <p class="section-label">Partners</p>
+          <h2 class="section-title">Featured Brands</h2>
+        </div>
+        <div class="carousel" id="brand-carousel">
+          <button class="carousel-btn prev" aria-label="Previous">‹</button>
+          <div class="carousel-track" id="brand-track"></div>
+          <button class="carousel-btn next" aria-label="Next">›</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="editorial-card card reveal">
+          <img src="https://images.pexels.com/photos/2983464/pexels-photo-2983464.jpeg?auto=compress&cs=tinysrgb&w=800" alt="Fashion editorial" loading="lazy">
+          <div class="editorial-card-content">
+            <p class="section-label">Editorial</p>
+            <h2>The Art of Quiet Luxury</h2>
+            <p style="color:var(--color-text-muted);margin:1rem 0 1.5rem;line-height:1.8">Explore how modern collectors are redefining luxury through intentional curation and timeless design.</p>
+            <a href="./pages/about.html" class="btn btn-outline">Read Story</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" style="background:var(--color-bg-elevated)">
+      <div class="container">
+        <div class="carousel" id="testimonial-carousel">
+          <button class="carousel-btn prev" aria-label="Previous">‹</button>
+          <div class="carousel-track">
+            <div class="carousel-slide"><div class="testimonial-card"><blockquote>"FashionX delivers an experience rivaling the finest boutiques in Paris. Impeccable authentication and white-glove service."</blockquote><div class="testimonial-author"><img src="https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=100" alt="" loading="lazy"><div><strong>Elena Vasquez</strong><br><small style="color:var(--color-text-muted)">Collector, Madrid</small></div></div></div></div>
+            <div class="carousel-slide"><div class="testimonial-card"><blockquote>"The Bid platform is extraordinary. I secured a vintage tourbillon at fair market value with complete provenance documentation."</blockquote><div class="testimonial-author"><img src="https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=100" alt="" loading="lazy"><div><strong>James Whitmore</strong><br><small style="color:var(--color-text-muted)">Watch Collector, NYC</small></div></div></div></div>
+            <div class="carousel-slide"><div class="testimonial-card"><blockquote>"Finally a marketplace that understands luxury isn't just price — it's provenance, presentation, and trust."</blockquote><div class="testimonial-author"><img src="https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=100" alt="" loading="lazy"><div><strong>Sophie Laurent</strong><br><small style="color:var(--color-text-muted)">Fashion Director, Paris</small></div></div></div></div>
+          </div>
+          <button class="carousel-btn next" aria-label="Next">›</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="newsletter-box reveal">
+          <p class="section-label">Exclusive Access</p>
+          <h2>Join the Inner Circle</h2>
+          <p style="color:var(--color-text-muted)">Receive early access to limited drops, private auctions, and editorial content.</p>
+          <form class="newsletter-form" id="newsletter-form">
+            <input type="email" class="form-input" placeholder="Your email address" required aria-label="Email">
+            <button type="submit" class="btn btn-primary">Subscribe</button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer" id="site-footer" data-base="."></footer>
+
+  <script type="module" src="./assets/js/app.js"></script>
+  <script type="module" src="./assets/js/pages/home.js"></script>
+</body>
+</html>

@@ -1,0 +1,122 @@
+/* FashionX Admin Panel */
+.admin-shell {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 0;
+  min-height: calc(100vh - 120px);
+  margin: 0 -1rem;
+}
+
+.admin-sidebar {
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+  padding: 1.5rem 0;
+  position: sticky;
+  top: 80px;
+  height: fit-content;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+}
+
+.admin-sidebar h2 {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-gold);
+  padding: 0 1.25rem 1rem;
+  margin: 0;
+}
+
+.admin-nav-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.75rem 1.25rem;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.admin-nav-btn:hover,
+.admin-nav-btn.active {
+  background: rgba(201, 169, 98, 0.12);
+  color: var(--color-gold);
+}
+
+.admin-main {
+  padding: 1.5rem 2rem 3rem;
+}
+
+.admin-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.admin-toolbar h1 {
+  margin: 0;
+  font-size: 1.75rem;
+}
+
+.admin-badge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  background: rgba(201, 169, 98, 0.2);
+  color: var(--color-gold);
+  border-radius: 999px;
+}
+
+.admin-table-wrap {
+  overflow-x: auto;
+}
+
+.admin-form-grid {
+  display: grid;
+  gap: 1rem;
+  max-width: 600px;
+}
+
+.admin-form-grid .form-group {
+  margin: 0;
+}
+
+.admin-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.admin-loading {
+  text-align: center;
+  padding: 3rem;
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 900px) {
+  .admin-shell {
+    grid-template-columns: 1fr;
+  }
+  .admin-sidebar {
+    position: static;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    padding: 1rem;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .admin-sidebar h2 {
+    width: 100%;
+  }
+  .admin-nav-btn {
+    width: auto;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+  }
+}

@@ -1,0 +1,51 @@
+[
+  {
+    "id": "cat_001",
+    "name": "Custom Fashion",
+    "slug": "custom-fashion",
+    "image": "https://images.pexels.com/photos/1045547/pexels-photo-1045547.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "count": 24
+  },
+  {
+    "id": "cat_002",
+    "name": "Premium Watches",
+    "slug": "watches",
+    "image": "https://images.pexels.com/photos/190819/pexels-photo-190819.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "count": 18
+  },
+  {
+    "id": "cat_003",
+    "name": "Luxury Perfumes",
+    "slug": "perfumes",
+    "image": "https://images.pexels.com/photos/3373719/pexels-photo-3373719.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "count": 15
+  },
+  {
+    "id": "cat_004",
+    "name": "Designer Shoes",
+    "slug": "shoes",
+    "image": "https://images.pexels.com/photos/1598505/pexels-photo-1598505.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "count": 22
+  },
+  {
+    "id": "cat_005",
+    "name": "Premium Sunglasses",
+    "slug": "sunglasses",
+    "image": "https://images.pexels.com/photos/157627/pexels-photo-157627.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "count": 12
+  },
+  {
+    "id": "cat_006",
+    "name": "Accessories",
+    "slug": "accessories",
+    "image": "https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "count": 30
+  },
+  {
+    "id": "cat_007",
+    "name": "Limited Edition",
+    "slug": "limited-edition",
+    "image": "https://images.pexels.com/photos/2526878/pexels-photo-2526878.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "count": 8
+  }
+]

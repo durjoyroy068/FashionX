@@ -1,0 +1,122 @@
+[
+  {
+    "id": "auc_001",
+    "title": "Vintage Chronos Elite Pocket Watch 1920",
+    "brand": "Chronos Elite",
+    "brandId": "br_003",
+    "sellerId": "sel_003",
+    "description": "Authenticated 1920s pocket watch with original movement. Museum-grade condition.",
+    "image": "https://images.pexels.com/photos/190819/pexels-photo-190819.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "images": [
+      "https://images.pexels.com/photos/190819/pexels-photo-190819.jpeg?auto=compress&cs=tinysrgb&w=800"
+    ],
+    "startingBid": 15000,
+    "currentBid": 18750,
+    "reservePrice": 20000,
+    "bidIncrement": 250,
+    "endTime": "2026-05-25T18:00:00Z",
+    "status": "live",
+    "bidderCount": 14,
+    "category": "watches"
+  },
+  {
+    "id": "auc_002",
+    "title": "Maison Élise Archive Gown — 1994 Collection",
+    "brand": "Maison Élise",
+    "brandId": "br_001",
+    "sellerId": "sel_001",
+    "description": "One-of-one archive piece from the 1994 haute couture collection. Provenance documented.",
+    "image": "https://images.pexels.com/photos/1045547/pexels-photo-1045547.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "images": [
+      "https://images.pexels.com/photos/1045547/pexels-photo-1045547.jpeg?auto=compress&cs=tinysrgb&w=800"
+    ],
+    "startingBid": 8000,
+    "currentBid": 12400,
+    "reservePrice": 15000,
+    "bidIncrement": 200,
+    "endTime": "2026-05-22T20:00:00Z",
+    "status": "live",
+    "bidderCount": 22,
+    "category": "custom-fashion"
+  },
+  {
+    "id": "auc_003",
+    "title": "Noir Parfums Master Blender Set — Signed",
+    "brand": "Noir Parfums",
+    "brandId": "br_004",
+    "sellerId": "sel_004",
+    "description": "Complete master blender collection signed by the perfumer. Includes certificate.",
+    "image": "https://images.pexels.com/photos/3373719/pexels-photo-3373719.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "images": [
+      "https://images.pexels.com/photos/3373719/pexels-photo-3373719.jpeg?auto=compress&cs=tinysrgb&w=800"
+    ],
+    "startingBid": 1200,
+    "currentBid": 2100,
+    "reservePrice": 2500,
+    "bidIncrement": 50,
+    "endTime": "2026-05-21T22:00:00Z",
+    "status": "live",
+    "bidderCount": 31,
+    "category": "perfumes"
+  },
+  {
+    "id": "auc_004",
+    "title": "Heritage Vault Diamond Cuff — Prototype",
+    "brand": "Heritage Vault",
+    "brandId": "br_006",
+    "sellerId": "sel_001",
+    "description": "Never-released prototype cuff with 3.1ct diamonds. Exclusive to FashionX Bid.",
+    "image": "https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "images": [
+      "https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg?auto=compress&cs=tinysrgb&w=800"
+    ],
+    "startingBid": 20000,
+    "currentBid": 28500,
+    "reservePrice": 35000,
+    "bidIncrement": 500,
+    "endTime": "2026-05-28T16:00:00Z",
+    "status": "live",
+    "bidderCount": 9,
+    "category": "accessories"
+  },
+  {
+    "id": "auc_005",
+    "title": "Velour Atelier First Edition Oxford",
+    "brand": "Velour Atelier",
+    "brandId": "br_002",
+    "sellerId": "sel_002",
+    "description": "First pair from the inaugural 2010 collection. Museum display condition.",
+    "image": "https://images.pexels.com/photos/1598505/pexels-photo-1598505.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "images": [
+      "https://images.pexels.com/photos/1598505/pexels-photo-1598505.jpeg?auto=compress&cs=tinysrgb&w=800"
+    ],
+    "startingBid": 2500,
+    "currentBid": 3800,
+    "reservePrice": 4000,
+    "bidIncrement": 100,
+    "endTime": "2026-05-20T12:00:00Z",
+    "status": "expired",
+    "bidderCount": 18,
+    "category": "shoes"
+  },
+  {
+    "id": "auc_006",
+    "title": "Lumière Optique Titanium Prototype Frame",
+    "brand": "Lumière Optique",
+    "brandId": "br_005",
+    "sellerId": "sel_005",
+    "description": "Prototype titanium frame never released commercially. One of three existing.",
+    "image": "https://images.pexels.com/photos/157627/pexels-photo-157627.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "images": [
+      "https://images.pexels.com/photos/157627/pexels-photo-157627.jpeg?auto=compress&cs=tinysrgb&w=800"
+    ],
+    "startingBid": 600,
+    "currentBid": 1450,
+    "reservePrice": 1200,
+    "bidIncrement": 25,
+    "endTime": "2026-05-26T14:00:00Z",
+    "status": "live",
+    "bidderCount": 27,
+    "category": "sunglasses"
+  }
+]

@@ -1,0 +1,57 @@
+[
+  {
+    "id": "sel_001",
+    "name": "Élise Boutique Official",
+    "brandId": "br_001",
+    "avatar": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=200",
+    "verified": true,
+    "rating": 4.9,
+    "sales": 2840,
+    "joined": "2019-03-15",
+    "location": "Paris, France"
+  },
+  {
+    "id": "sel_002",
+    "name": "Velour Milano",
+    "brandId": "br_002",
+    "avatar": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=200",
+    "verified": true,
+    "rating": 4.8,
+    "sales": 1920,
+    "joined": "2020-06-22",
+    "location": "Milan, Italy"
+  },
+  {
+    "id": "sel_003",
+    "name": "Chronos Geneva",
+    "brandId": "br_003",
+    "avatar": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=200",
+    "verified": true,
+    "rating": 5,
+    "sales": 890,
+    "joined": "2018-11-08",
+    "location": "Geneva, Switzerland"
+  },
+  {
+    "id": "sel_004",
+    "name": "Noir Fragrance House",
+    "brandId": "br_004",
+    "avatar": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=200",
+    "verified": true,
+    "rating": 4.9,
+    "sales": 1560,
+    "joined": "2021-01-30",
+    "location": "Grasse, France"
+  },
+  {
+    "id": "sel_005",
+    "name": "Lumière Tokyo",
+    "brandId": "br_005",
+    "avatar": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=200",
+    "verified": true,
+    "rating": 4.7,
+    "sales": 720,
+    "joined": "2022-04-12",
+    "location": "Tokyo, Japan"
+  }
+]
