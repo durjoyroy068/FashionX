@@ -7,7 +7,94 @@ import toast from "../ui/toast.js";
 import apiClient from "../api/client.js";
 import { API_CONFIG } from "../config/constants.js";
 
-registerPage("bid-auction", async () => {
+let _pollInterval = null;
+
+function stopBidPolling() {
+  if (_pollInterval) {
+    clearInterval(_pollInterval);
+    _pollInterval = null;
+  }
+}
+
+function updateCurrentBid(amount) {
+  const el = document.getElementById("current-bid");
+  if (el) el.textContent = formatPrice(amount);
+}
+
+function updateBidLeaderboardFromApi(bids) {
+  if (!bids?.length) return;
+  const sorted = [...bids].sort((a, b) => b.amount - a.amount);
+  const tbody = document.querySelector("#leaderboard tbody");
+  if (tbody) {
+    tbody.innerHTML = sorted.slice(0, 10).map((b, i) => `
+      <tr class="${i === 0 ? "bid-flash" : ""}">
+        <td>#${i + 1}</td><td>${b.bidder}</td><td>${formatPrice(b.amount)}</td>
+        <td>${b.date ? new Date(b.date).toLocaleTimeString() : ""}</td>
+      </tr>`).join("");
+  }
+  const history = document.getElementById("bid-history");
+  if (history) {
+    history.innerHTML = sorted.map((b) => `
+      <div style="display:flex;justify-content:space-between;padding:0.5rem 0;border-bottom:1px solid var(--color-border)">
+        <span>${b.bidder}</span><strong>${formatPrice(b.amount)}</strong>
+      </div>`).join("");
+  }
+  const high = sorted[0];
+  if (high) {
+    updateCurrentBid(high.amount);
+    const bidderEl = document.getElementById("high-bidder");
+    if (bidderEl) bidderEl.textContent = high.bidder ? `Leader: ${high.bidder}` : "";
+  }
+}
+
+function startBidPolling(auctionId) {
+  if (API_CONFIG.USE_MOCK) return;
+  stopBidPolling();
+  _pollInterval = setInterval(async () => {
+    const res = await apiClient.get(`/auctions/${auctionId}/bids`);
+    if (res.success) {
+      const bids = apiClient.unwrapList(res);
+      auctionManager.setBidsFromApi(auctionId, bids);
+      updateBidLeaderboardFromApi(bids);
+      if (bids.length > 0) {
+        const top = [...bids].sort((a, b) => b.amount - a.amount)[0];
+        updateCurrentBid(top.amount);
+      }
+    }
+  }, 5000);
+}
+
+window.addEventListener("beforeunload", stopBidPolling);
+
+function paintAuctionLoading() {
+  const main = document.getElementById("main-content") || document.querySelector(".page-main");
+  main.innerHTML = `
+    <div class="container" style="padding:2rem 0">
+      <div class="skeleton" style="height:14px;width:180px;margin-bottom:2rem"></div>
+      <div class="auction-detail-grid">
+        <div>
+          <div class="skeleton auction-detail-image" style="aspect-ratio:1/1;border-radius:8px"></div>
+          <div class="skeleton" style="height:12px;width:100%;margin-top:1.5rem"></div>
+          <div class="skeleton" style="height:12px;width:92%;margin-top:0.5rem"></div>
+          <div class="skeleton" style="height:12px;width:78%;margin-top:0.5rem"></div>
+        </div>
+        <div class="bid-panel">
+          <div class="skeleton" style="height:20px;width:120px;margin-bottom:1rem"></div>
+          <div class="skeleton" style="height:28px;width:85%;margin-bottom:0.75rem"></div>
+          <div class="skeleton" style="height:16px;width:40%;margin-bottom:1.5rem"></div>
+          <div class="skeleton" style="height:100px;width:100%;margin-bottom:1rem;border-radius:8px"></div>
+          <div class="skeleton" style="height:48px;width:100%;border-radius:8px"></div>
+        </div>
+      </div>
+    </div>`;
+}
+
+registerPage("bid-auction", () => {
+  paintAuctionLoading();
+  void hydrateBidAuction();
+});
+
+async function hydrateBidAuction() {
   const id = new URLSearchParams(location.search).get("id");
   let auction = await dataService.getAuctionById(id);
   let apiBids = [];
@@ -132,7 +219,9 @@ registerPage("bid-auction", async () => {
     this.textContent = auctionManager.isWatched(id) ? "Watching" : "Watch Auction";
     toast.info(auctionManager.isWatched(id) ? "Added to watchlist" : "Removed from watchlist");
   });
-});
+
+  startBidPolling(id);
+}
 
 function updateLeaderboard(auctionId) {
   const bids = auctionManager.getBids(auctionId).slice(0, 10);

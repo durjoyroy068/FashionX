@@ -1,4 +1,4 @@
-import { debounce } from "../utils/format.js";
+import { debounce, getPagePath } from "../utils/format.js";
 import cart from "../modules/cart.js";
 import wishlist from "../modules/wishlist.js";
 import auth from "../modules/auth.js";
@@ -18,7 +18,7 @@ function categoryLinksHtml(categories, base) {
 
 function paintHeader(headerEl, base, categories) {
   const user = auth.getUser();
-  const accountHref = user ? auth.getDashboardPath() : `${base}/pages/login.html`;
+  const accountHref = user ? auth.getDashboardPath() : getPagePath("login");
   const categoryLinks = categoryLinksHtml(categories, base);
 
   const buyerDrawerLinks = `
@@ -107,8 +107,9 @@ function paintHeader(headerEl, base, categories) {
         </a>
 
         ${user
-          ? `<a href="${accountHref}" class="header-icon" aria-label="Account dashboard">👤</a>`
-          : `<a href="${base}/pages/login.html" class="btn btn-ghost btn-sm">Sign In</a>`
+          ? `<a href="${accountHref}" class="header-icon" aria-label="Account dashboard">👤</a>
+             <button type="button" class="btn btn-ghost btn-sm header-logout" id="header-logout">Logout</button>`
+          : `<a href="${getPagePath("login")}" class="btn btn-ghost btn-sm">Sign In</a>`
         }
       </div>
     </div>
@@ -132,7 +133,7 @@ function paintHeader(headerEl, base, categories) {
         <a href="${base}/pages/contact.html" class="drawer-link">Contact</a>
         ${user
           ? `<button class="btn btn-outline btn-block" id="drawer-logout" style="margin-top:1rem">Logout</button>`
-          : `<a href="${base}/pages/login.html" class="btn btn-primary btn-block" style="margin-top:1rem">Sign In</a>`
+          : `<a href="${getPagePath("login")}" class="btn btn-primary btn-block" style="margin-top:1rem">Sign In</a>`
         }
       </div>
     </nav>
@@ -151,7 +152,7 @@ export function renderHeader() {
   const headerEl = document.getElementById("site-header");
   if (!headerEl) return Promise.resolve();
 
-  const base = "";
+  const base = headerEl.dataset.base || "";
   const initialCategories = dataService.peekCategories() || getCachedCategories() || [];
   paintHeader(headerEl, base, initialCategories);
   updateActiveNav();
@@ -184,31 +185,45 @@ function getHeaderBase() {
   return document.getElementById("site-header")?.dataset.base || ".";
 }
 
+function closeNavDrawer() {
+  const menuToggle = document.getElementById("menu-toggle");
+  const drawer = document.getElementById("nav-drawer");
+  menuToggle?.classList.remove("active");
+  drawer?.classList.remove("active");
+  document.getElementById("drawer-overlay")?.classList.remove("active");
+  document.body.classList.remove("nav-open");
+  menuToggle?.setAttribute("aria-expanded", "false");
+}
+
+function openNavDrawer() {
+  const menuToggle = document.getElementById("menu-toggle");
+  const drawer = document.getElementById("nav-drawer");
+  menuToggle?.classList.add("active");
+  drawer?.classList.add("active");
+  document.getElementById("drawer-overlay")?.classList.add("active");
+  document.body.classList.add("nav-open");
+  menuToggle?.setAttribute("aria-expanded", "true");
+}
+
 function bindHeaderEvents() {
   document.addEventListener("click", (e) => {
     const toggle = e.target.closest("#menu-toggle");
     const closeBtn = e.target.closest("#drawer-close");
     const overlay = e.target.closest("#drawer-overlay");
-    const drawer = document.getElementById("nav-drawer");
-    const menuToggle = document.getElementById("menu-toggle");
 
     if (toggle) {
-      menuToggle?.classList.add("active");
-      drawer?.classList.add("active");
-      document.getElementById("drawer-overlay")?.classList.add("active");
-      document.body.classList.add("nav-open");
-      menuToggle?.setAttribute("aria-expanded", "true");
+      openNavDrawer();
     }
 
     if (closeBtn || overlay) {
-      menuToggle?.classList.remove("active");
-      drawer?.classList.remove("active");
-      document.getElementById("drawer-overlay")?.classList.remove("active");
-      document.body.classList.remove("nav-open");
-      menuToggle?.setAttribute("aria-expanded", "false");
+      closeNavDrawer();
     }
 
-    if (e.target.closest("#drawer-logout")) {
+    if (e.target.closest(".nav-drawer .drawer-link")) {
+      closeNavDrawer();
+    }
+
+    if (e.target.closest("#drawer-logout") || e.target.closest("#header-logout")) {
       e.preventDefault();
       const base = getHeaderBase();
       void auth.logoutAndRedirect(`${base}/index.html`);
@@ -232,6 +247,13 @@ function bindHeaderEvents() {
 
   const current = Storage.get(STORAGE_KEYS.THEME, "dark");
   document.documentElement.setAttribute("data-theme", current === "light" ? "light" : "");
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && document.getElementById("nav-drawer")?.classList.contains("active")) {
+      closeNavDrawer();
+      document.getElementById("menu-toggle")?.focus();
+    }
+  });
 
   initSearch();
   updateCounts();

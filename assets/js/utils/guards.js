@@ -12,7 +12,8 @@ export function requireAuth() {
 export function requireRole(...roles) {
   if (!requireAuth()) return false;
   const user = auth.getUser();
-  if (!roles.includes(user?.role)) {
+  const userRole = (user?.role || "").toLowerCase();
+  if (!roles.map((r) => r.toLowerCase()).includes(userRole)) {
     window.location.href = auth.getDashboardPath(user?.role);
     return false;
   }

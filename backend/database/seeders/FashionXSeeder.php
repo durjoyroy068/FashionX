@@ -89,7 +89,7 @@ class FashionXSeeder extends Seeder
         $password = Hash::make('FashionX1!');
 
         $buyer = User::updateOrCreate(
-            ['email' => 'demo@fashionx.com'],
+            ['email' => 'buyer@fashionx.com'],
             [
                 'name' => 'Alexandra Chen',
                 'first_name' => 'Alexandra',
@@ -101,6 +101,19 @@ class FashionXSeeder extends Seeder
             ]
         );
         $buyer->syncRoles(['customer']);
+
+        User::updateOrCreate(
+            ['email' => 'demo@fashionx.com'],
+            [
+                'name' => 'Demo Buyer',
+                'first_name' => 'Demo',
+                'last_name' => 'Buyer',
+                'password' => $password,
+                'role' => UserRole::Customer,
+                'is_active' => true,
+                'email_verified_at' => now(),
+            ]
+        )->syncRoles(['customer']);
 
         $sellerUser = User::updateOrCreate(
             ['email' => 'seller@fashionx.com'],

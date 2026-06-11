@@ -10,7 +10,7 @@ import { loadStorefrontBanners, applyHeroBanner } from "../utils/banners.js";
 registerPage("home", () => {
   ["featured-products", "trending-products", "bestseller-products"].forEach((id) => {
     const el = document.getElementById(id);
-    if (el && !el.innerHTML.trim()) showSkeletonGrid(el, 4);
+    if (el && !el.innerHTML.trim()) showSkeletonGrid(el, 5);
   });
   const bidGrid = document.getElementById("live-auctions");
   if (bidGrid && !bidGrid.innerHTML.trim()) showSkeletonGrid(bidGrid, 3);
@@ -36,22 +36,11 @@ async function hydrateHome() {
 
   const brandTrack = document.getElementById("brand-track");
   if (brandTrack) {
-    brandTrack.innerHTML = brands
-      .map(
-        (b) => `
-      <div class="carousel-slide">
-        <a href="./pages/brand.html?id=${b.id}" class="card" style="padding:2rem;text-align:center">
-          <img src="${b.logo}" alt="${b.name}" style="width:80px;height:80px;border-radius:50%;margin:0 auto 1rem;object-fit:cover">
-          <h3 style="font-size:1.125rem">${b.name}</h3>
-          <p style="color:var(--color-text-muted);font-size:0.875rem">${b.country}</p>
-        </a>
-      </div>`
-      )
-      .join("");
-    initCarousel("brand-carousel");
+    brandTrack.innerHTML = brands.map((b) => renderBrandSlide(b)).join("");
+    initCarousel("brand-carousel", { perView: { mobile: 1, tablet: 2, desktop: 4 } });
   }
 
-  initCarousel("testimonial-carousel");
+  initTestimonials();
 
   document.getElementById("newsletter-form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -72,10 +61,24 @@ async function hydrateHome() {
   loadRecentlyViewed();
 }
 
+function takeProducts(list, count, fallback = []) {
+  const picked = list.slice(0, count);
+  if (picked.length >= count) return picked;
+  const seen = new Set(picked.map((p) => p.id));
+  for (const p of fallback) {
+    if (picked.length >= count) break;
+    if (!seen.has(p.id)) {
+      picked.push(p);
+      seen.add(p.id);
+    }
+  }
+  return picked;
+}
+
 function paintHomeGrids(products, auctions) {
-  const featured = products.filter((p) => p.featured).slice(0, 4);
-  const trending = [...products].sort((a, b) => b.reviewCount - a.reviewCount).slice(0, 4);
-  const bestsellers = products.filter((p) => p.badges?.includes("Bestseller")).slice(0, 4);
+  const featured = takeProducts(products.filter((p) => p.featured), 5, products);
+  const trending = [...products].sort((a, b) => b.reviewCount - a.reviewCount).slice(0, 5);
+  const bestsellers = takeProducts(products.filter((p) => p.badges?.includes("Bestseller")), 5, products);
 
   renderProductGrid(featured, document.getElementById("featured-products"), { basePath: "." });
   renderProductGrid(trending, document.getElementById("trending-products"), { basePath: "." });
@@ -83,11 +86,22 @@ function paintHomeGrids(products, auctions) {
 
   const bidGrid = document.getElementById("live-auctions");
   const live = auctions.filter((a) => a.status === "live" || a.status === "active").slice(0, 3);
-  if (bidGrid && live.length) {
-    bidGrid.innerHTML = live.map((a) => renderAuctionCard(a, ".")).join("");
+  if (!bidGrid) return;
+
+  if (live.length) {
+    bidGrid.innerHTML = live.map((a) => renderAuctionCard(a)).join("");
     initCountdowns();
     initReveal(bidGrid);
+    return;
   }
+
+  bidGrid.innerHTML = `
+    <div class="empty-state card">
+      <p class="section-label">Coming Soon</p>
+      <h2>No Live Auctions Right Now</h2>
+      <p>New authenticated lots are added regularly. Explore the auction house or get notified first.</p>
+      <a href="./bid/index.html" class="btn btn-primary">Browse Auction House</a>
+    </div>`;
 }
 
 function initCountdowns() {
@@ -106,7 +120,69 @@ function initCountdowns() {
   });
 }
 
-function initCarousel(id) {
+const TESTIMONIAL_WORD_LIMIT = 50;
+
+function brandInitials(name) {
+  return name
+    .split(/\s+/)
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
+function renderBrandLogo(brand) {
+  const initials = brandInitials(brand.name);
+  if (brand.logo) {
+    return `<div class="brand-card__logo brand-card__logo--image">
+      <img src="${brand.logo}" alt="${brand.name}" loading="lazy" width="72" height="72">
+    </div>`;
+  }
+  return `<div class="brand-card__logo" aria-hidden="true">${initials}</div>`;
+}
+
+function renderBrandSlide(brand) {
+  const verified = brand.verified
+    ? '<span class="brand-card__badge">Verified</span>'
+    : "";
+  const count = brand.productCount
+    ? `<p class="brand-card__meta">${brand.productCount} curated pieces</p>`
+    : "";
+
+  return `
+    <div class="carousel-slide">
+      <a href="./pages/brand.html?id=${brand.id}" class="brand-card">
+        ${renderBrandLogo(brand)}
+        <div class="brand-card__body">
+          <h3 class="brand-card__name">${brand.name}</h3>
+          <p class="brand-card__country">${brand.country}</p>
+          ${verified}
+          ${count}
+        </div>
+      </a>
+    </div>`;
+}
+
+function truncateWords(text, maxWords) {
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  if (words.length <= maxWords) return words.join(" ");
+  return `${words.slice(0, maxWords).join(" ")}\u2026`;
+}
+
+function initTestimonials() {
+  document.querySelectorAll(".testimonials-grid blockquote").forEach((el) => {
+    el.textContent = truncateWords(el.textContent, TESTIMONIAL_WORD_LIMIT);
+  });
+}
+
+function getCarouselPerView(options) {
+  const bp = options.perView || {};
+  if (window.innerWidth >= 1024) return bp.desktop ?? 3;
+  if (window.innerWidth >= 768) return bp.tablet ?? 2;
+  return bp.mobile ?? 1;
+}
+
+function initCarousel(id, options = {}) {
   const carousel = document.getElementById(id);
   if (!carousel) return;
   const track = carousel.querySelector(".carousel-track");
@@ -114,14 +190,26 @@ function initCarousel(id) {
   let index = 0;
   const prev = carousel.querySelector(".carousel-btn.prev");
   const next = carousel.querySelector(".carousel-btn.next");
+
   const update = () => {
-    const perView = window.innerWidth >= 1024 ? 3 : window.innerWidth >= 768 ? 2 : 1;
+    const perView = getCarouselPerView(options);
     const max = Math.max(0, slides - perView);
     index = Math.min(index, max);
     track.style.transform = `translateX(-${(index * 100) / perView}%)`;
+
+    carousel.classList.toggle("carousel-static", max === 0);
+    prev?.toggleAttribute("disabled", index <= 0);
+    next?.toggleAttribute("disabled", index >= max);
   };
-  prev?.addEventListener("click", () => { index = Math.max(0, index - 1); update(); });
-  next?.addEventListener("click", () => { index++; update(); });
+
+  prev?.addEventListener("click", () => {
+    index = Math.max(0, index - 1);
+    update();
+  });
+  next?.addEventListener("click", () => {
+    index = Math.min(Math.max(0, slides - getCarouselPerView(options)), index + 1);
+    update();
+  });
   window.addEventListener("resize", update);
   update();
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Seller;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductResource;
+use App\Models\Brand;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Traits\ApiResponse;
@@ -41,13 +42,19 @@ class ProductController extends Controller
         }
 
         $request->merge([
-            'brand_id' => (int) preg_replace('/\D/', '', (string) $request->input('brand_id')),
             'category_id' => (int) preg_replace('/\D/', '', (string) $request->input('category_id')),
         ]);
 
+        if ($request->filled('brand_id')) {
+            $request->merge([
+                'brand_id' => (int) preg_replace('/\D/', '', (string) $request->input('brand_id')),
+            ]);
+        }
+
         $data = $request->validate([
             'name' => 'required|string|max:255',
-            'brand_id' => 'required|exists:brands,id',
+            'brand_id' => 'required_without:brand_name|nullable|integer|exists:brands,id',
+            'brand_name' => 'required_without:brand_id|nullable|string|min:2|max:255',
             'category_id' => 'required|exists:categories,id',
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
@@ -56,8 +63,18 @@ class ProductController extends Controller
             'images.*' => 'url',
         ]);
 
+        if (!empty($data['brand_id']) && !empty($data['brand_name'])) {
+            return $this->error('Select an existing brand or enter a new brand name, not both.', 422);
+        }
+
+        $brandId = $this->resolveBrandId($data);
         $product = Product::create([
-            ...$data,
+            'name' => $data['name'],
+            'brand_id' => $brandId,
+            'category_id' => $data['category_id'],
+            'price' => $data['price'],
+            'stock' => $data['stock'],
+            'description' => $data['description'] ?? null,
             'seller_id' => $seller->id,
             'slug' => Str::slug($data['name']) . '-' . uniqid(),
             'sku' => 'FX-' . strtoupper(Str::random(8)),
@@ -112,5 +129,35 @@ class ProductController extends Controller
         return Product::where('seller_id', $seller->id)
             ->where('id', (int) preg_replace('/\D/', '', $id))
             ->firstOrFail();
+    }
+
+    protected function resolveBrandId(array $data): int
+    {
+        if (!empty($data['brand_name'])) {
+            $name = trim($data['brand_name']);
+
+            $existing = Brand::whereRaw('LOWER(name) = ?', [strtolower($name)])->first();
+            if ($existing) {
+                return (int) $existing->id;
+            }
+
+            $baseSlug = Str::slug($name) ?: 'brand';
+            $slug = $baseSlug;
+            $suffix = 1;
+            while (Brand::where('slug', $slug)->exists()) {
+                $slug = $baseSlug . '-' . $suffix++;
+            }
+
+            $brand = Brand::create([
+                'name' => $name,
+                'slug' => $slug,
+                'verified' => false,
+                'product_count' => 0,
+            ]);
+
+            return (int) $brand->id;
+        }
+
+        return (int) $data['brand_id'];
     }
 }

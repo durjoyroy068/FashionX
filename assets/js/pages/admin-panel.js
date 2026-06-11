@@ -23,23 +23,81 @@ registerPage("admin", async () => {
   await loadSection("dashboard");
 });
 
+function adminDisplayName(user) {
+  if (!user) return "Administrator";
+  const first = user.firstName || user.first_name || "";
+  const last = user.lastName || user.last_name || "";
+  const full = `${first} ${last}`.trim();
+  return full || user.email || "Administrator";
+}
+
 function renderShell() {
+  const user = auth.getUser();
   getPageMain().innerHTML = `
     <div class="admin-shell">
       <aside class="admin-sidebar">
-        <h2>FashionX Admin</h2>
-        <button type="button" class="admin-nav-btn active" data-section="dashboard">Dashboard</button>
-        <button type="button" class="admin-nav-btn" data-section="users">Users</button>
-        <button type="button" class="admin-nav-btn" data-section="sellers">Sellers</button>
-        <button type="button" class="admin-nav-btn" data-section="products">Products</button>
-        <button type="button" class="admin-nav-btn" data-section="orders">Orders</button>
-        <button type="button" class="admin-nav-btn" data-section="banners">Banners</button>
-        <button type="button" class="admin-nav-btn" data-section="coupons">Coupons</button>
-        <button type="button" class="admin-nav-btn" data-section="reviews">Reviews</button>
-        <button type="button" class="admin-nav-btn" data-section="messages">Messages</button>
-        <button type="button" class="admin-nav-btn" data-section="subscribers">Subscribers</button>
-        <button type="button" class="admin-nav-btn" data-section="settings">Settings</button>
-        <button type="button" class="admin-nav-btn admin-nav-storefront" style="margin-top:1rem;color:var(--color-text-dim)">View Storefront →</button>
+        <div class="admin-sidebar-brand">
+          <div class="admin-sidebar-brand-title">FashionX</div>
+          <div class="admin-sidebar-brand-sub">Admin Console</div>
+        </div>
+        <div class="admin-sidebar-top">
+          <div class="admin-nav-section-label">Overview</div>
+          <button type="button" class="admin-nav-btn active" data-section="dashboard">
+            <span class="nav-icon">◈</span> Dashboard
+          </button>
+          <div class="admin-nav-section-label">Manage</div>
+          <button type="button" class="admin-nav-btn" data-section="users">
+            <span class="nav-icon">◎</span> Users
+          </button>
+          <button type="button" class="admin-nav-btn" data-section="sellers">
+            <span class="nav-icon">◇</span> Sellers
+          </button>
+          <button type="button" class="admin-nav-btn" data-section="products">
+            <span class="nav-icon">⊞</span> Products
+          </button>
+          <button type="button" class="admin-nav-btn" data-section="orders">
+            <span class="nav-icon">⊡</span> Orders
+          </button>
+          <div class="admin-nav-section-label">Content</div>
+          <button type="button" class="admin-nav-btn" data-section="banners">
+            <span class="nav-icon">⊟</span> Banners
+          </button>
+          <button type="button" class="admin-nav-btn" data-section="coupons">
+            <span class="nav-icon">◈</span> Coupons
+          </button>
+          <button type="button" class="admin-nav-btn" data-section="reviews">
+            <span class="nav-icon">◉</span> Reviews
+          </button>
+          <button type="button" class="admin-nav-btn" data-section="messages">
+            <span class="nav-icon">◻</span> Messages
+          </button>
+          <button type="button" class="admin-nav-btn" data-section="subscribers">
+            <span class="nav-icon">◌</span> Subscribers
+          </button>
+          <div class="admin-nav-section-label">System</div>
+          <button type="button" class="admin-nav-btn" data-section="settings">
+            <span class="nav-icon">◈</span> Settings
+          </button>
+          <button type="button" class="admin-nav-btn admin-nav-storefront">
+            <span class="nav-icon">↗</span> View Storefront
+          </button>
+        </div>
+        <div class="admin-sidebar-footer">
+          <div class="admin-user-card">
+            <div class="admin-user-avatar">${(adminDisplayName(user).charAt(0) || "A").toUpperCase()}</div>
+            <div class="admin-user-info">
+              <div class="admin-user-name">${adminDisplayName(user)}</div>
+              <div class="admin-user-email">${user?.email || ""}</div>
+              <div class="admin-user-role">Administrator</div>
+            </div>
+          </div>
+          <a href="../pages/dashboard.html" class="admin-nav-btn admin-nav-link">
+            <span class="nav-icon">◁</span> Buyer Dashboard
+          </a>
+          <button type="button" class="admin-nav-btn admin-logout-btn" id="admin-logout">
+            <span class="nav-icon">⊗</span> Logout
+          </button>
+        </div>
       </aside>
       <div class="admin-main" id="admin-content">
         <div class="admin-loading">Loading…</div>
@@ -48,6 +106,11 @@ function renderShell() {
 
   document.querySelector(".admin-nav-storefront")?.addEventListener("click", () => {
     window.location.href = "../index.html";
+  });
+
+  document.getElementById("admin-logout")?.addEventListener("click", async (e) => {
+    e.preventDefault();
+    await auth.logoutAndRedirect("../index.html");
   });
 }
 
@@ -93,20 +156,79 @@ async function loadDashboard(el) {
   if (!res.success) throw new Error(res.error || "API error");
   const d = res.data;
   el.innerHTML = `
-    <div class="admin-toolbar"><h1>Dashboard</h1><span class="admin-badge">Live Data</span></div>
-    <div class="stat-cards">
-      <div class="stat-card"><h3>Revenue</h3><p class="value">${formatPrice(d.revenue)}</p></div>
-      <div class="stat-card"><h3>Orders</h3><p class="value">${d.orders}</p></div>
-      <div class="stat-card"><h3>Products</h3><p class="value">${d.products}</p></div>
-      <div class="stat-card"><h3>Users</h3><p class="value">${d.users}</p></div>
-      <div class="stat-card"><h3>Pending Sellers</h3><p class="value">${d.pending_sellers}</p></div>
-      <div class="stat-card"><h3>Pending Reviews</h3><p class="value">${d.pending_reviews}</p></div>
-      <div class="stat-card"><h3>New Messages</h3><p class="value">${d.new_contact_messages || 0}</p></div>
-      <div class="stat-card"><h3>Subscribers</h3><p class="value">${d.newsletter_subscribers || 0}</p></div>
+    <div class="admin-toolbar">
+      <h1>Dashboard</h1>
+      <div class="admin-toolbar-actions">
+        <span class="admin-badge">Live Data</span>
+      </div>
     </div>
-    <div class="card" style="padding:1.5rem;margin-top:1.5rem">
-      <p style="color:var(--color-text-muted)">Control the storefront: manage banners, coupons, site settings, and moderate content. Changes apply immediately to the live API.</p>
+    <div class="admin-stat-grid">
+      <div class="admin-stat-card admin-stat-card--revenue">
+        <span class="admin-stat-icon">◈</span>
+        <div class="admin-stat-label">Total Revenue</div>
+        <div class="admin-stat-value">${formatPrice(d.revenue)}</div>
+        <div class="admin-stat-sub">All time</div>
+      </div>
+      <div class="admin-stat-card admin-stat-card--orders">
+        <span class="admin-stat-icon">⊡</span>
+        <div class="admin-stat-label">Total Orders</div>
+        <div class="admin-stat-value">${d.orders}</div>
+        <div class="admin-stat-sub">Processed</div>
+      </div>
+      <div class="admin-stat-card admin-stat-card--products">
+        <span class="admin-stat-icon">⊞</span>
+        <div class="admin-stat-label">Products</div>
+        <div class="admin-stat-value">${d.products}</div>
+        <div class="admin-stat-sub">Listed</div>
+      </div>
+      <div class="admin-stat-card admin-stat-card--users">
+        <span class="admin-stat-icon">◎</span>
+        <div class="admin-stat-label">Users</div>
+        <div class="admin-stat-value">${d.users}</div>
+        <div class="admin-stat-sub">Registered</div>
+      </div>
+      <div class="admin-stat-card admin-stat-card--pending">
+        <span class="admin-stat-icon">◇</span>
+        <div class="admin-stat-label">Pending Sellers</div>
+        <div class="admin-stat-value">${d.pending_sellers}</div>
+        <div class="admin-stat-sub">Awaiting review</div>
+      </div>
+      <div class="admin-stat-card admin-stat-card--pending">
+        <span class="admin-stat-icon">◉</span>
+        <div class="admin-stat-label">Pending Reviews</div>
+        <div class="admin-stat-value">${d.pending_reviews}</div>
+        <div class="admin-stat-sub">To moderate</div>
+      </div>
+      <div class="admin-stat-card admin-stat-card--messages">
+        <span class="admin-stat-icon">◻</span>
+        <div class="admin-stat-label">New Messages</div>
+        <div class="admin-stat-value">${d.new_contact_messages || 0}</div>
+        <div class="admin-stat-sub">Unread</div>
+      </div>
+      <div class="admin-stat-card admin-stat-card--users">
+        <span class="admin-stat-icon">◌</span>
+        <div class="admin-stat-label">Subscribers</div>
+        <div class="admin-stat-value">${d.newsletter_subscribers || 0}</div>
+        <div class="admin-stat-sub">Newsletter</div>
+      </div>
+    </div>
+    <div class="admin-quick-panel">
+      <p>Control the storefront: manage banners, coupons, and site settings. All changes are applied live via the API.</p>
+      <div class="admin-quick-actions">
+        ${d.pending_sellers ? `<button type="button" class="btn btn-primary btn-sm admin-quick-link" data-section="sellers">${d.pending_sellers} seller application${d.pending_sellers === 1 ? "" : "s"} awaiting review</button>` : ""}
+        ${d.pending_reviews ? `<button type="button" class="btn btn-outline btn-sm admin-quick-link" data-section="reviews">${d.pending_reviews} review${d.pending_reviews === 1 ? "" : "s"} pending moderation</button>` : ""}
+      </div>
     </div>`;
+
+  el.querySelectorAll(".admin-quick-link").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const section = btn.dataset.section;
+      document.querySelectorAll(".admin-nav-btn[data-section]").forEach((nav) => {
+        nav.classList.toggle("active", nav.dataset.section === section);
+      });
+      await loadSection(section);
+    });
+  });
 }
 
 async function loadUsers(el) {
@@ -114,13 +236,14 @@ async function loadUsers(el) {
   if (!res.success) throw new Error(res.error);
   const users = res.data || [];
   el.innerHTML = `
-    <div class="admin-toolbar"><h1>Users</h1></div>
+    <div class="admin-toolbar"><h1>Users</h1><span class="admin-badge">${users.length} total</span></div>
     <div class="card admin-table-wrap" style="padding:1rem">
-      <table class="data-table"><thead><tr><th>Email</th><th>Name</th><th>Role</th><th>Active</th><th></th></tr></thead>
+      ${users.length ? `<table class="data-table"><thead><tr><th>Email</th><th>Name</th><th>Role</th><th>Active</th><th></th></tr></thead>
       <tbody>${users.map((u) => `
         <tr><td>${u.email}</td><td>${u.first_name || ""} ${u.last_name || ""}</td><td>${u.role}</td>
         <td>${u.is_active ? "Yes" : "No"}</td>
-        <td><button class="btn btn-ghost btn-sm toggle-user" data-id="${u.id}" data-active="${u.is_active}">${u.is_active ? "Disable" : "Enable"}</button></td></tr>`).join("")}</tbody></table>
+        <td><button class="btn btn-ghost btn-sm toggle-user" data-id="${u.id}" data-active="${u.is_active}">${u.is_active ? "Disable" : "Enable"}</button></td></tr>`).join("")}</tbody></table>`
+        : "<p style='padding:1rem;color:var(--color-text-muted)'>No users found.</p>"}
     </div>`;
   el.querySelectorAll(".toggle-user").forEach((btn) => {
     btn.addEventListener("click", async () => {
@@ -143,8 +266,8 @@ async function loadSellers(el) {
       <tbody>${pending.map((p) => `
         <tr><td>${p.business_name}</td><td>${p.user?.email || p.user_id}</td>
         <td>
-          <button class="btn btn-primary btn-sm approve-seller" data-id="${p.user_id}">Approve</button>
-          <button class="btn btn-ghost btn-sm reject-seller" data-id="${p.user_id}">Reject</button>
+          <button class="btn btn-primary btn-sm approve-seller" data-id="${p.user?.id || p.user_id}">Approve</button>
+          <button class="btn btn-ghost btn-sm reject-seller" data-id="${p.user?.id || p.user_id}">Reject</button>
         </td></tr>`).join("")}</tbody></table></div>` : ""}
     <div class="card admin-table-wrap" style="padding:1rem">
       <table class="data-table"><thead><tr><th>Store</th><th>Status</th><th>Verified</th><th>Rating</th></tr></thead>
@@ -175,7 +298,7 @@ async function loadProducts(el) {
   el.innerHTML = `
     <div class="admin-toolbar"><h1>Products</h1><span class="admin-badge">${products.length} items</span></div>
     <div class="card admin-table-wrap" style="padding:1rem">
-      <table class="data-table"><thead><tr><th>Name</th><th>Price</th><th>Stock</th><th>Featured</th><th>Active</th><th></th></tr></thead>
+      ${products.length ? `<table class="data-table"><thead><tr><th>Name</th><th>Price</th><th>Stock</th><th>Featured</th><th>Active</th><th></th></tr></thead>
       <tbody>${products.map((p) => `
         <tr><td>${p.name}</td><td>${formatPrice(p.discountPrice || p.price)}</td><td>${p.stock}</td>
         <td>${p.featured ? "Yes" : "No"}</td><td>${p.is_active !== false ? "Yes" : "No"}</td>
@@ -183,7 +306,8 @@ async function loadProducts(el) {
           <button class="btn btn-ghost btn-sm toggle-feat" data-id="${p.id}">Featured</button>
           <button class="btn btn-ghost btn-sm toggle-active" data-id="${p.id}" data-active="${p.is_active !== false}">Active</button>
           <button class="btn btn-ghost btn-sm del-prod" data-id="${p.id}">Delete</button>
-        </td></tr>`).join("")}</tbody></table>
+        </td></tr>`).join("")}</tbody></table>`
+        : "<p style='padding:1rem;color:var(--color-text-muted)'>No products in the catalog yet.</p>"}
     </div>`;
   el.querySelectorAll(".toggle-feat").forEach((btn) => {
     btn.addEventListener("click", async () => {
@@ -191,6 +315,7 @@ async function loadProducts(el) {
       const p = products.find((x) => x.id === btn.dataset.id);
       const r = await adminApi.patch(`/products/${pid}`, { featured: !p?.featured });
       if (r.success) { toast.success("Updated"); loadProducts(el); }
+      else toast.error(r.error || "Update failed");
     });
   });
   el.querySelectorAll(".toggle-active").forEach((btn) => {
@@ -198,6 +323,7 @@ async function loadProducts(el) {
       const pid = btn.dataset.id.replace("prod_", "");
       const r = await adminApi.patch(`/products/${pid}`, { is_active: btn.dataset.active !== "true" });
       if (r.success) { toast.success("Product visibility updated"); loadProducts(el); }
+      else toast.error(r.error || "Update failed");
     });
   });
   el.querySelectorAll(".del-prod").forEach((btn) => {
@@ -205,6 +331,7 @@ async function loadProducts(el) {
       if (!confirm("Delete this product?")) return;
       const r = await adminApi.delete(`/products/${btn.dataset.id.replace("prod_", "")}`);
       if (r.success) { toast.success("Deleted"); loadProducts(el); }
+      else toast.error(r.error || "Delete failed");
     });
   });
 }
@@ -214,16 +341,17 @@ async function loadOrders(el) {
   if (!res.success) throw new Error(res.error);
   const orders = res.data || [];
   el.innerHTML = `
-    <div class="admin-toolbar"><h1>Orders</h1></div>
+    <div class="admin-toolbar"><h1>Orders</h1><span class="admin-badge">${orders.length} total</span></div>
     <div class="card admin-table-wrap" style="padding:1rem">
-      <table class="data-table"><thead><tr><th>Order #</th><th>Customer</th><th>Total</th><th>Status</th><th>Payment</th><th>Update</th></tr></thead>
+      ${orders.length ? `<table class="data-table"><thead><tr><th>Order #</th><th>Customer</th><th>Total</th><th>Status</th><th>Payment</th><th>Update</th></tr></thead>
       <tbody>${orders.map((o) => `
         <tr><td>${o.order_number}</td><td>${o.user_email || "—"}</td><td>${formatPrice(o.total)}</td>
         <td><span class="badge">${o.status}</span></td><td>${o.payment_status}</td>
         <td><select class="form-input order-status" data-id="${o.id}" style="min-width:140px;padding:0.35rem">
           ${["pending","confirmed","processing","shipped","delivered","cancelled"].map((s) =>
             `<option value="${s}" ${s === o.status ? "selected" : ""}>${s}</option>`).join("")}
-        </select></td></tr>`).join("")}</tbody></table>
+        </select></td></tr>`).join("")}</tbody></table>`
+        : "<p style='padding:1rem;color:var(--color-text-muted)'>No orders yet.</p>"}
     </div>`;
   el.querySelectorAll(".order-status").forEach((sel) => {
     sel.addEventListener("change", async () => {

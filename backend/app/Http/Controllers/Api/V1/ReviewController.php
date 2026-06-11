@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Review;
 use App\Traits\ApiResponse;
@@ -44,6 +45,16 @@ class ReviewController extends Controller
 
         $pid = (int) preg_replace('/\D/', '', $data['product_id']);
         $product = Product::findOrFail($pid);
+
+        $hasPurchased = OrderItem::query()
+            ->whereHas('order', fn ($q) => $q->where('user_id', $request->user()->id)
+                ->where('status', 'delivered'))
+            ->where('product_id', $product->id)
+            ->exists();
+
+        if (!$hasPurchased) {
+            return $this->error('You can only review products you have purchased and received.', 403);
+        }
 
         $review = Review::updateOrCreate(
             ['user_id' => $request->user()->id, 'product_id' => $pid],

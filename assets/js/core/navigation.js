@@ -14,13 +14,28 @@ const NO_RENDER_CACHE = new Set([
   "checkout",
   "login",
   "register",
-  "payment",
-  "wishlist",
-  "seller",
-  "seller-profile"
+  "bid-home",
+  "bid-auction",
+  "shop",
+  "search"
 ]);
 let currentBase = null;
 let navigating = false;
+
+const PAGE_EXIT_MS = 200;
+const PAGE_ENTER_MS = 400;
+
+async function runPageTransition(main, swapContent) {
+  main.classList.add("page-exit");
+  await new Promise((r) => setTimeout(r, PAGE_EXIT_MS));
+  swapContent();
+  main.classList.remove("page-exit");
+  main.classList.add("page-enter");
+  void main.offsetHeight;
+  main.classList.add("page-enter-active");
+  main.classList.remove("page-enter");
+  setTimeout(() => main.classList.remove("page-enter-active"), PAGE_ENTER_MS);
+}
 
 function skipRenderCache(page) {
   return page && NO_RENDER_CACHE.has(page);
@@ -82,7 +97,16 @@ async function fetchPageDocument(url) {
     credentials: "same-origin",
     headers: { Accept: "text/html" }
   });
-  if (!res.ok) throw new Error(`Failed to load ${url}`);
+  if (!res.ok) {
+    if (res.status === 404) {
+      const notFound = new URL("/pages/404.html", window.location.origin).href;
+      if (url !== notFound) {
+        window.location.href = notFound;
+        return null;
+      }
+    }
+    throw new Error(`Failed to load ${url}`);
+  }
 
   const html = await res.text();
   const doc = new DOMParser().parseFromString(html, "text/html");
@@ -153,7 +177,9 @@ export async function navigateTo(url, { replace = false, refreshHeader } = {}) {
         bodyClass: document.body.className,
         base: getBaseFromPath(new URL(url).pathname)
       };
-      main.innerHTML = rendered;
+      await runPageTransition(main, () => {
+        main.innerHTML = rendered;
+      });
       applyDocumentMeta(parsed, url, replace);
       syncChromeBase(parsed.base, refreshHeader);
       window.scrollTo(0, 0);
@@ -162,15 +188,22 @@ export async function navigateTo(url, { replace = false, refreshHeader } = {}) {
     }
 
     const parsed = await fetchPageDocument(url);
+    if (!parsed) return;
     if (parsed.page) prefetchPageModule(parsed.page);
 
-    main.innerHTML = parsed.mainHtml;
+    await runPageTransition(main, () => {
+      main.innerHTML = parsed.mainHtml;
+    });
     applyDocumentMeta(parsed, url, replace);
     syncChromeBase(parsed.base, refreshHeader);
     window.scrollTo(0, 0);
 
     void hydratePage(parsed.page, main, url);
   } catch {
+    const main = document.querySelector(".page-main");
+    if (main) {
+      main.classList.remove("page-exit", "page-enter", "page-enter-active");
+    }
     window.location.href = url;
   } finally {
     navigating = false;
@@ -199,8 +232,28 @@ function guessPageFromPath(pathname) {
     "payment.html": "payment",
     "admin-dashboard.html": "admin",
     "auction.html": "bid-auction",
+    "submit.html": "bid-submit",
+    "history.html": "bid-history",
+    "winning.html": "bid-winning",
+    "expired.html": "bid-expired",
+    "payment-verify.html": "bid-payment",
+    "seller-dashboard.html": pathname.includes("/bid/") ? "bid-seller" : "seller",
     "dashboard.html": "dashboard",
-    "about.html": "about"
+    "orders.html": "orders",
+    "addresses.html": "addresses",
+    "notifications.html": "notifications",
+    "order-success.html": "order-success",
+    "tracking.html": "tracking",
+    "categories.html": "categories",
+    "brand.html": "brand",
+    "search.html": "search",
+    "contact.html": "contact",
+    "about.html": "about",
+    "faq.html": "faq",
+    "terms.html": "terms",
+    "privacy.html": "privacy",
+    "404.html": "404",
+    "seller-profile.html": "seller-profile"
   };
   return map[file] || file.replace(".html", "");
 }

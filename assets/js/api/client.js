@@ -74,9 +74,16 @@ class ApiClient {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         this._handleAuthFailure(res.status);
+        let error = data.message || data.errors || res.statusText;
+        if (res.status === 429) {
+          error = "Too many attempts. Please wait a minute and try again.";
+        } else if (data.errors && typeof data.errors === "object") {
+          const details = Object.values(data.errors).flat().filter(Boolean);
+          if (details.length) error = details.join(" ");
+        }
         return {
           success: false,
-          error: data.message || data.errors || res.statusText,
+          error,
           errors: data.errors,
           status: res.status
         };

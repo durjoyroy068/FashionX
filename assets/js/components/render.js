@@ -16,7 +16,7 @@ export function renderStars(rating) {
 }
 
 export function renderProductCard(product, options = {}) {
-  const base = options.basePath || ".";
+  const productHref = `${getPagePath("product")}?id=${encodeURIComponent(product.id)}`;
   const price = product.discountPrice || product.price;
   const hasDiscount = product.discountPrice && product.discountPrice < product.price;
   const inWishlist = wishlist.has(product.id);
@@ -33,7 +33,7 @@ export function renderProductCard(product, options = {}) {
 
   return `
     <article class="card product-card hover-lift reveal" data-product-id="${product.id}">
-      <a href="${base}/pages/product.html?id=${product.id}" class="product-card__link">
+      <a href="${productHref}" class="product-card__link">
         <div class="product-card__media">
           <img src="${getProductImage(product)}" alt="${product.name}" loading="lazy" width="400" height="533" ${imageFallbackAttr()}>
           <div class="product-card__badges">${badges}${stockBadge}</div>
@@ -84,11 +84,12 @@ export function renderProductGrid(products, container, options = {}) {
   initReveal(container);
 }
 
-export function renderAuctionCard(auction, base = ".") {
+export function renderAuctionCard(auction) {
+  const auctionHref = `${getPagePath("bidDetail")}?id=${encodeURIComponent(auction.id)}`;
   const img = getAuctionImage(auction);
   return `
     <article class="card auction-card hover-lift reveal" data-auction-id="${auction.id}">
-      <a href="${base}/bid/auction.html?id=${auction.id}">
+      <a href="${auctionHref}">
         <div class="product-card__media">
           <img src="${img}" alt="${auction.title}" loading="lazy" ${imageFallbackAttr()}>
           <div class="product-card__badges">
@@ -123,9 +124,17 @@ export function initReveal(root = document) {
         }
       });
     },
-    { threshold: 0.1, rootMargin: "0px 0px -40px 0px" }
+    { threshold: 0.05, rootMargin: "0px 0px 0px 0px" }
   );
-  reveals.forEach((el) => observer.observe(el));
+  const viewportH = window.innerHeight || document.documentElement.clientHeight;
+  reveals.forEach((el) => {
+    const rect = el.getBoundingClientRect();
+    if (rect.top < viewportH && rect.bottom > 0) {
+      el.classList.add("visible");
+      return;
+    }
+    observer.observe(el);
+  });
 }
 
 export function showSkeletonGrid(container, count = 8) {

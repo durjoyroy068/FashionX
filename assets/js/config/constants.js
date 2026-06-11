@@ -1,9 +1,9 @@
-/** Central config — swap BASE_URL when connecting backend */
+/** Central config — override via window.__FASHIONX_* in HTML before scripts load */
 export const API_CONFIG = {
-  /** Laravel: php artisan serve → http://127.0.0.1:8000/api/v1 */
-  BASE_URL: "http://127.0.0.1:8000/api/v1",
-  /** Set false after running: php artisan migrate --seed */
-  USE_MOCK: false,
+  BASE_URL: window.__FASHIONX_API_URL__ || "http://127.0.0.1:8000/api/v1",
+  USE_MOCK: window.__FASHIONX_USE_MOCK__ !== undefined
+    ? window.__FASHIONX_USE_MOCK__
+    : false,
   TIMEOUT_MS: 15000
 };
 

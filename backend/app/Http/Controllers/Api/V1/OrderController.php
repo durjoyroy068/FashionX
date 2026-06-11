@@ -59,6 +59,29 @@ class OrderController extends Controller
         return $this->success($this->formatOrderPublic($order), 'Order placed', 201);
     }
 
+    public function tracking(Request $request, string $id)
+    {
+        $order = Order::with(['items.product'])
+            ->where('user_id', $request->user()->id)
+            ->where('id', (int) preg_replace('/\D/', '', $id))
+            ->firstOrFail();
+
+        $steps = [
+            ['status' => 'confirmed', 'label' => 'Order Confirmed', 'done' => true],
+            ['status' => 'processing', 'label' => 'Processing', 'done' => in_array($order->status, ['processing', 'shipped', 'delivered'])],
+            ['status' => 'shipped', 'label' => 'Shipped', 'done' => in_array($order->status, ['shipped', 'delivered'])],
+            ['status' => 'delivered', 'label' => 'Delivered', 'done' => $order->status === 'delivered'],
+        ];
+
+        return $this->success([
+            'id' => 'ord_' . $order->id,
+            'status' => $order->status,
+            'tracking_steps' => $steps,
+            'estimated_delivery' => $order->created_at->addDays(7)->toDateString(),
+            'items_count' => $order->items->count(),
+        ]);
+    }
+
     public function invoice(Request $request, string $id)
     {
         $order = Order::with('items', 'payment')

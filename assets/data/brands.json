@@ -2,7 +2,7 @@
   {
     "id": "br_001",
     "name": "Maison Élise",
-    "logo": "https://images.pexels.com/photos/3184296/pexels-photo-3184296.jpeg?auto=compress&cs=tinysrgb&w=200",
+    "logo": "https://images.pexels.com/photos/1536619/pexels-photo-1536619.jpeg?auto=compress&cs=tinysrgb&w=200",
     "description": "Parisian haute couture house renowned for bespoke evening wear and artisanal craftsmanship since 1987.",
     "country": "France",
     "verified": true,
@@ -11,7 +11,7 @@
   {
     "id": "br_002",
     "name": "Velour Atelier",
-    "logo": "https://images.pexels.com/photos/3184296/pexels-photo-3184296.jpeg?auto=compress&cs=tinysrgb&w=200",
+    "logo": "https://images.pexels.com/photos/1906687/pexels-photo-1906687.jpeg?auto=compress&cs=tinysrgb&w=200",
     "description": "Italian luxury footwear atelier combining traditional leathercraft with contemporary silhouettes.",
     "country": "Italy",
     "verified": true,
@@ -20,7 +20,7 @@
   {
     "id": "br_003",
     "name": "Chronos Elite",
-    "logo": "https://images.pexels.com/photos/3184296/pexels-photo-3184296.jpeg?auto=compress&cs=tinysrgb&w=200",
+    "logo": "https://images.pexels.com/photos/278387/pexels-photo-278387.jpeg?auto=compress&cs=tinysrgb&w=200",
     "description": "Swiss horological excellence. Limited production timepieces for discerning collectors worldwide.",
     "country": "Switzerland",
     "verified": true,
@@ -29,7 +29,7 @@
   {
     "id": "br_004",
     "name": "Noir Parfums",
-    "logo": "https://images.pexels.com/photos/3184296/pexels-photo-3184296.jpeg?auto=compress&cs=tinysrgb&w=200",
+    "logo": "https://images.pexels.com/photos/110390/pexels-photo-110390.jpeg?auto=compress&cs=tinysrgb&w=200",
     "description": "Niche fragrance house crafting olfactory narratives from rare botanicals and aged essences.",
     "country": "France",
     "verified": true,
@@ -38,7 +38,7 @@
   {
     "id": "br_005",
     "name": "Lumière Optique",
-    "logo": "https://images.pexels.com/photos/3184296/pexels-photo-3184296.jpeg?auto=compress&cs=tinysrgb&w=200",
+    "logo": "https://images.pexels.com/photos/701877/pexels-photo-701877.jpeg?auto=compress&cs=tinysrgb&w=200",
     "description": "Handcrafted eyewear merging Japanese titanium engineering with European design sensibility.",
     "country": "Japan",
     "verified": true,
@@ -47,7 +47,7 @@
   {
     "id": "br_006",
     "name": "Heritage Vault",
-    "logo": "https://images.pexels.com/photos/3184296/pexels-photo-3184296.jpeg?auto=compress&cs=tinysrgb&w=200",
+    "logo": "https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg?auto=compress&cs=tinysrgb&w=200",
     "description": "Curators of authenticated limited edition luxury collectibles and investment-grade fashion pieces.",
     "country": "UK",
     "verified": true,

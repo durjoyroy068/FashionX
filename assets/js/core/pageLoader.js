@@ -37,5 +37,10 @@ export async function runPageInit(page) {
   }
 
   const initFn = getPageModule(page);
-  if (initFn) await initFn();
+  if (!initFn) return;
+
+  const result = initFn();
+  if (result?.then) {
+    result.catch((err) => console.error(`Page init failed (${page}):`, err));
+  }
 }

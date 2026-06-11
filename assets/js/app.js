@@ -49,8 +49,8 @@ window.addEventListener("apiError", (e) => {
   toast.error(e.detail || "Could not reach the server. Is Laravel running on port 8000?");
 });
 
-window.addEventListener("authChanged", async (e) => {
-  await renderHeader();
+window.addEventListener("authChanged", (e) => {
+  void renderHeader();
   if (auth.isLoggedIn() && !API_CONFIG.USE_MOCK && !e.detail?.loggedOut) {
     try {
       sessionStorage.removeItem(CART_SYNC_KEY);

@@ -7,13 +7,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AuctionWinner extends Model
 {
-    protected $fillable = ['auction_id', 'user_id', 'bid_id', 'winning_amount', 'won_at'];
+    protected $fillable = ['auction_id', 'user_id', 'bid_id', 'winning_amount', 'won_at', 'payment_status', 'paid_at'];
 
     protected function casts(): array
     {
         return [
             'winning_amount' => 'decimal:2',
             'won_at' => 'datetime',
+            'paid_at' => 'datetime',
         ];
     }
 

@@ -13,6 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
         apiPrefix: 'api',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
         $middleware->alias([
             'role' => \App\Http\Middleware\EnsureUserRole::class,
             'seller.approved' => \App\Http\Middleware\EnsureSellerProfile::class,
@@ -57,6 +58,31 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(function (\RuntimeException $e, $request) {
             if ($request->is('api/*')) {
                 return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+            }
+        });
+
+        $exceptions->render(function (\Illuminate\Auth\AuthenticationException $e, $request) {
+            if ($request->is('api/*')) {
+                return response()->json(['success' => false, 'message' => 'Unauthenticated.'], 401);
+            }
+        });
+
+        $exceptions->render(function (\Illuminate\Auth\Access\AuthorizationException $e, $request) {
+            if ($request->is('api/*')) {
+                return response()->json(['success' => false, 'message' => $e->getMessage() ?: 'Forbidden'], 403);
+            }
+        });
+
+        $exceptions->render(function (\Throwable $e, $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                $status = method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500;
+
+                return response()->json([
+                    'success' => false,
+                    'message' => app()->environment('production')
+                        ? 'Server error'
+                        : $e->getMessage(),
+                ], $status);
             }
         });
     })->create();

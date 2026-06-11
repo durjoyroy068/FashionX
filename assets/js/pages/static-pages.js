@@ -56,22 +56,12 @@ const pages = {
     </div>`;
   },
 
-  "bid-payment": () => `<div class="container page-hero"><h1>Payment Verification</h1></div>
-    <div class="container" style="max-width:600px;padding-bottom:3rem">
-      <form class="card" style="padding:2rem" id="verify-form">
-        <p style="color:var(--color-text-muted);margin-bottom:1.5rem">Verify your payment method to participate in high-value auctions.</p>
-        <div class="form-group"><label class="form-label">Transaction Reference</label><input class="form-input" name="ref" required></div>
-        <div class="form-group"><label class="form-label">Amount Paid</label><input type="number" class="form-input" name="amount" required></div>
-        <button type="submit" class="btn btn-primary btn-block">Verify Payment</button>
-      </form>
-    </div>`,
-
   "bid-winning": () => {
     const id = new URLSearchParams(location.search).get("id");
     return `<div class="container" style="padding:4rem 0;text-align:center">
       <h1 style="color:var(--color-gold)">Congratulations!</h1>
       <p style="color:var(--color-text-muted);margin:1.5rem 0">You won auction ${id || ""}</p>
-      <a href="payment-verify.html" class="btn btn-primary">Complete Payment</a>
+      <a href="payment-verify.html${id ? `?id=${encodeURIComponent(id)}` : ""}" class="btn btn-primary">Complete Payment</a>
       <a href="index.html" class="btn btn-outline" style="margin-left:0.5rem">More Auctions</a>
     </div>`;
   },
@@ -94,14 +84,107 @@ const pages = {
 Object.keys(pages).forEach((name) => {
   registerPage(name, () => {
     getPageMain().innerHTML = pages[name]();
-    if (name === "bid-payment") {
-      document.getElementById("verify-form")?.addEventListener("submit", (e) => {
-        e.preventDefault();
-        toast.success("Payment verified successfully");
-        setTimeout(() => { window.location.href = "index.html"; }, 1000);
-      });
+  });
+});
+
+function renderSalesChart(weeklySales = []) {
+  const maxRevenue = Math.max(...weeklySales.map((d) => d.revenue || 0), 1);
+  return weeklySales.map((day) => {
+    const height = Math.max(8, Math.round(((day.revenue || 0) / maxRevenue) * 100));
+    const title = `${day.label}: ${formatPrice(day.revenue || 0)}`;
+    return `<div class="chart-bar-col" title="${title}">
+      <div class="bar" style="height:${height}%"></div>
+      <span class="chart-bar-label">${day.label || ""}</span>
+    </div>`;
+  }).join("");
+}
+
+async function initBidPaymentPage() {
+  if (!auth.requireAuth()) return;
+
+  const params = new URLSearchParams(location.search);
+  const auctionId = params.get("id") || params.get("auction");
+  const sslStatus = params.get("status");
+  const main = getPageMain();
+
+  let paymentStatus = null;
+  if (!API_CONFIG.USE_MOCK) {
+    const statusPath = auctionId
+      ? `/auctions/payments/status?auction_id=${encodeURIComponent(auctionId)}`
+      : "/auctions/payments/status";
+    const statusRes = await apiClient.get(statusPath);
+    if (statusRes.success) paymentStatus = statusRes.data;
+  }
+
+  if (paymentStatus?.verified) {
+    main.innerHTML = `<div class="container" style="padding:4rem 0;text-align:center;max-width:560px;margin:0 auto">
+      <div style="font-size:3rem;color:var(--color-success);margin-bottom:1rem">✓</div>
+      <h1>Payment Verified</h1>
+      <p style="color:var(--color-text-muted);margin:1rem 0 2rem">Your auction payment is confirmed${auctionId ? ` for ${auctionId}` : ""}.</p>
+      <a href="index.html" class="btn btn-primary">Back to Auctions</a>
+    </div>`;
+    return;
+  }
+
+  const winningHint = paymentStatus?.winning_amount
+    ? `<p class="form-hint">Winning bid amount: <strong>${formatPrice(paymentStatus.winning_amount)}</strong></p>`
+    : "";
+
+  main.innerHTML = `<div class="container page-hero"><h1>Payment Verification</h1>
+    ${auctionId ? `<p style="color:var(--color-text-muted)">Auction: ${auctionId}</p>` : ""}</div>
+    <div class="container" style="max-width:600px;padding-bottom:3rem">
+      <form class="card" style="padding:2rem" id="verify-form">
+        <p style="color:var(--color-text-muted);margin-bottom:1.5rem">Submit your transaction details to verify payment${auctionId ? " for your winning bid" : " and participate in high-value auctions"}.</p>
+        ${winningHint}
+        <div class="form-group"><label class="form-label">Transaction Reference</label><input class="form-input" name="ref" required placeholder="TXN-123456"></div>
+        <div class="form-group"><label class="form-label">Amount Paid</label><input type="number" class="form-input" name="amount" min="0.01" step="0.01" required value="${paymentStatus?.winning_amount || ""}"></div>
+        <button type="submit" class="btn btn-primary btn-block">Verify Payment</button>
+      </form>
+    </div>`;
+
+  const autoVerifySsl = !API_CONFIG.USE_MOCK && (params.get("val_id") || sslStatus === "VALID");
+  if (autoVerifySsl) {
+    const amount = parseFloat(params.get("amount") || paymentStatus?.winning_amount || "0");
+    const res = await apiClient.post("/auctions/payments/verify", {
+      transaction_reference: params.get("tran_id") || params.get("bank_tran_id") || `ssl_${Date.now()}`,
+      amount,
+      auction_id: auctionId,
+      provider: "sslcommerz",
+      sslcommerz: Object.fromEntries(params.entries())
+    });
+    if (res.success) {
+      toast.success("Payment verified via SSLCommerz");
+      setTimeout(() => { window.location.href = auctionId ? `winning.html?id=${encodeURIComponent(auctionId)}` : "index.html"; }, 1200);
+      return;
+    }
+    toast.error(res.error || "SSLCommerz verification failed");
+  }
+
+  document.getElementById("verify-form")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    if (API_CONFIG.USE_MOCK) {
+      toast.success("Payment verified successfully");
+      setTimeout(() => { window.location.href = "index.html"; }, 1000);
+      return;
+    }
+    const res = await apiClient.post("/auctions/payments/verify", {
+      transaction_reference: fd.get("ref"),
+      amount: Number(fd.get("amount")),
+      auction_id: auctionId,
+      provider: "manual"
+    });
+    if (res.success) {
+      toast.success("Payment verified successfully");
+      setTimeout(() => { window.location.href = auctionId ? `winning.html?id=${encodeURIComponent(auctionId)}` : "index.html"; }, 1200);
+    } else {
+      toast.error(res.error || "Verification failed");
     }
   });
+}
+
+registerPage("bid-payment", () => {
+  void initBidPaymentPage();
 });
 
 registerPage("search", async () => {
@@ -211,19 +294,59 @@ registerPage("faq", () => {
 
 registerPage("orders", async () => {
   if (!auth.requireAuth()) return;
+  const sellerView = new URLSearchParams(location.search).get("view") === "seller";
+  const user = auth.getUser();
+  const useSellerApi = sellerView && (user?.role === "seller" || user?.role === "admin");
+
   let orders = Storage.get(STORAGE_KEYS.ORDERS, []);
+  let sellerRows = [];
   if (!API_CONFIG.USE_MOCK) {
-    const res = await apiClient.get("/orders");
-    if (res.success) orders = apiClient.unwrapList(res);
+    if (useSellerApi) {
+      const res = await apiClient.get("/seller/orders");
+      if (res.success) {
+        sellerRows = apiClient.unwrapList(res).map((item) => ({
+          id: item.order?.id || item.order_id,
+          order_number: item.order?.order_number || item.order_id,
+          date: item.order?.created_at || item.created_at,
+          product: item.name,
+          quantity: item.quantity,
+          total: Number(item.unit_price || 0) * Number(item.quantity || 1),
+          status: item.order?.status || "processing"
+        }));
+      }
+    } else {
+      const res = await apiClient.get("/orders");
+      if (res.success) orders = apiClient.unwrapList(res);
+    }
   }
+
+  const pageTitle = useSellerApi ? "Seller Orders" : "Order History";
+  const tableBody = useSellerApi
+    ? (sellerRows.length
+      ? sellerRows.map((row) => `<tr>
+          <td>#${String(row.order_number || row.id).slice(-10)}</td>
+          <td>${formatDate(row.date || Date.now())}</td>
+          <td>${row.product} × ${row.quantity}</td>
+          <td>${formatPrice(row.total)}</td>
+          <td><span class="badge badge-success">${row.status}</span></td>
+        </tr>`).join("")
+      : `<tr><td colspan="5">No seller orders yet</td></tr>`)
+    : (orders.length
+      ? orders.map((o) => `<tr><td>#${(o.order_number || o.id || "").toString().slice(-10)}</td><td>${formatDate(o.date || o.created_at || Date.now())}</td><td>${formatPrice(o.total)}</td><td><span class="badge badge-success">${o.status}</span></td>
+        <td><a href="tracking.html?id=${o.id}">Track</a> · <button class="btn btn-ghost btn-sm invoice-btn" data-id="${o.id}">Invoice</button></td></tr>`).join("")
+      : "");
+
   getPageMain().innerHTML = `
-    <div class="container page-hero"><h1>Order History</h1></div>
+    <div class="container page-hero"><h1>${pageTitle}</h1>${useSellerApi ? `<p style="color:var(--color-text-muted)">Orders containing your products</p>` : ""}</div>
     <div class="container" style="padding-bottom:3rem">
-      ${orders.length ? `<div class="table-responsive card" style="padding:1rem"><table class="data-table">
-        <thead><tr><th>Order</th><th>Date</th><th>Total</th><th>Status</th><th></th></tr></thead>
-        <tbody>${orders.map((o) => `<tr><td>#${(o.order_number || o.id || "").toString().slice(-10)}</td><td>${formatDate(o.date)}</td><td>${formatPrice(o.total)}</td><td><span class="badge badge-success">${o.status}</span></td>
-        <td><a href="tracking.html?id=${o.id}">Track</a> · <button class="btn btn-ghost btn-sm invoice-btn" data-id="${o.id}">Invoice</button></td></tr>`).join("")}</tbody></table></div>`
-      : `<div class="empty-state"><h2>No orders yet</h2><a href="shop.html" class="btn btn-primary">Start Shopping</a></div>`}
+      ${(useSellerApi ? sellerRows.length : orders.length)
+        ? `<div class="table-responsive card" style="padding:1rem"><table class="data-table">
+        <thead><tr>${useSellerApi
+          ? "<th>Order</th><th>Date</th><th>Item</th><th>Total</th><th>Status</th>"
+          : "<th>Order</th><th>Date</th><th>Total</th><th>Status</th><th></th>"}</tr></thead>
+        <tbody>${tableBody}</tbody></table></div>
+        ${useSellerApi ? `<a href="seller-dashboard.html" class="btn btn-outline" style="margin-top:1rem">← Back to Seller Dashboard</a>` : ""}`
+        : `<div class="empty-state"><h2>No orders yet</h2><a href="shop.html" class="btn btn-primary">Start Shopping</a></div>`}
     </div>`;
   document.querySelectorAll(".invoice-btn").forEach((btn) => {
     btn.addEventListener("click", async () => {
@@ -231,70 +354,107 @@ registerPage("orders", async () => {
       if (!API_CONFIG.USE_MOCK) {
         const res = await apiClient.get(`/orders/${id}/invoice`);
         if (res.success) {
-          toast.success(`Invoice ${res.data.invoice_number || id} ready`);
-          console.info("Invoice", res.data);
+          openInvoicePreview(res.data);
           return;
         }
+        toast.error(res.error || "Could not load invoice");
+        return;
       }
       toast.success("Invoice ready");
     });
   });
 });
 
-registerPage("tracking", () => {
-  const params = new URLSearchParams(location.search);
-  const prefillId = params.get("id") || "";
-  getPageMain().innerHTML = `
-    <div class="container page-hero"><h1>Track Your Order</h1></div>
-    <div class="container" style="max-width:700px;padding-bottom:3rem">
-      <form class="card" style="padding:2rem;margin-bottom:2rem" id="track-form">
-        <div class="form-group"><label class="form-label" for="orderId">Order ID</label>
-          <input class="form-input" id="orderId" name="orderId" required placeholder="ord_1 or FX-..." value="${prefillId}"></div>
-        <button type="submit" class="btn btn-primary">Track</button>
-      </form>
-      <div id="track-result"></div>
-    </div>`;
+function openInvoicePreview(invoice) {
+  const items = (invoice.items || [])
+    .map((item) => `<tr><td>${item.name}</td><td>${item.quantity}</td><td>${formatPrice(item.unit_price)}</td><td>${formatPrice(item.unit_price * item.quantity)}</td></tr>`)
+    .join("");
+  const address = invoice.shipping_address
+    ? `<p>${invoice.shipping_address.line1 || ""}<br>${invoice.shipping_address.city || ""}, ${invoice.shipping_address.country || ""}</p>`
+    : "";
+  const html = `<!DOCTYPE html><html><head><title>Invoice ${invoice.invoice_number || ""}</title>
+    <style>body{font-family:Georgia,serif;padding:2rem;color:#111}table{width:100%;border-collapse:collapse;margin-top:1rem}td,th{border-bottom:1px solid #ddd;padding:.5rem;text-align:left}h1{color:#a68b45}</style>
+    </head><body>
+    <h1>FashionX Invoice</h1>
+    <p><strong>${invoice.invoice_number || ""}</strong> · ${formatDate(invoice.date || Date.now())}</p>
+    ${address}
+    <table><thead><tr><th>Item</th><th>Qty</th><th>Unit</th><th>Line Total</th></tr></thead><tbody>${items}</tbody></table>
+    <p style="margin-top:1.5rem"><strong>Total: ${formatPrice(invoice.total)}</strong></p>
+    </body></html>`;
+  const win = window.open("", "_blank", "noopener,noreferrer");
+  if (!win) {
+    toast.error("Allow pop-ups to view invoice");
+    return;
+  }
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  win.print();
+}
 
-  const renderTracking = async (orderId) => {
-    const result = document.getElementById("track-result");
-    let order = null;
-    if (!API_CONFIG.USE_MOCK && auth.isLoggedIn()) {
-      const res = await apiClient.get(`/orders/${orderId}`);
-      if (res.success) order = res.data;
-    }
-    if (!order) {
-      const orders = Storage.get(STORAGE_KEYS.ORDERS, []);
-      order = orders.find((o) => o.id === orderId || o.id?.endsWith?.(orderId) || o.order_number === orderId);
-    }
-    if (!order) {
-      result.innerHTML = `<div class="empty-state" style="padding:2rem"><p>No order found. Check the ID from your confirmation email.</p></div>`;
+function renderTrackingUI(container, data) {
+  const steps = (data.tracking_steps || []).map((step) => `
+    <div class="tracking-step ${step.done ? "completed" : ""}">
+      <div class="step-icon">${step.done ? "✓" : "○"}</div>
+      <div class="step-label">${step.label}</div>
+    </div>`).join("");
+
+  container.innerHTML = `
+    <div class="container" style="padding:3rem 0;max-width:700px;margin:0 auto">
+      <h1 style="margin-bottom:0.5rem">Order Tracking</h1>
+      <p style="color:var(--color-text-muted)">Order ID: <strong>${data.id}</strong></p>
+      <div class="tracking-steps" style="display:flex;gap:0;margin:2rem 0">${steps}</div>
+      <p>Estimated Delivery: <strong>${data.estimated_delivery || "N/A"}</strong></p>
+      <a href="orders.html" class="btn btn-outline" style="margin-top:1rem">← Back to Orders</a>
+    </div>`;
+}
+
+async function renderTrackingPage() {
+  const params = new URLSearchParams(window.location.search);
+  const orderId = params.get("id");
+  const main = getPageMain();
+
+  if (!orderId) {
+    main.innerHTML = `<div class="container" style="padding:4rem 0;text-align:center">
+      <h2>No Order ID</h2>
+      <p>Please check your order confirmation email for the tracking link.</p>
+      <a href="orders.html" class="btn btn-primary" style="margin-top:1rem">My Orders</a>
+    </div>`;
+    return;
+  }
+
+  if (!auth.isLoggedIn()) {
+    auth.redirectToLogin();
+    return;
+  }
+
+  if (!API_CONFIG.USE_MOCK) {
+    const res = await apiClient.get(`/orders/${orderId}/tracking`);
+    if (!res.success) {
+      main.innerHTML = `<div class="container" style="padding:4rem 0;text-align:center">
+        <h2>Order Not Found</h2><p>${res.error || "Unable to load tracking info."}</p>
+      </div>`;
       return;
     }
-    const status = order.status || "confirmed";
-    const steps = [
-      { label: "Confirmed", done: true },
-      { label: "Processing", done: status !== "pending" },
-      { label: "In Transit", done: status === "shipped" || status === "delivered" },
-      { label: "Delivered", done: status === "delivered" }
-    ];
-    const activeIdx = steps.findIndex((s) => !s.done);
-    result.innerHTML = `
-      <p style="color:var(--color-text-muted);margin-bottom:1rem">Order <strong>#${(order.order_number || order.id || "").toString().slice(-12)}</strong> · ${formatPrice(order.total)}</p>
-      <div class="tracker-steps">
-        ${steps.map((s, i) => `
-          <div class="tracker-step ${s.done ? "completed" : i === activeIdx ? "active" : ""}">
-            <div class="dot">${s.done ? "✓" : i + 1}</div><label>${s.label}</label>
-          </div>`).join("")}
-      </div>
-      <p style="text-align:center;color:var(--color-text-muted);margin-top:1rem">Status: ${status}</p>`;
-  };
+    renderTrackingUI(main, res.data);
+    return;
+  }
 
-  if (prefillId) renderTracking(prefillId);
-
-  document.getElementById("track-form").addEventListener("submit", (e) => {
-    e.preventDefault();
-    renderTracking(e.target.orderId.value.trim());
+  renderTrackingUI(main, {
+    id: orderId,
+    status: "shipped",
+    estimated_delivery: new Date(Date.now() + 3 * 86400000).toDateString(),
+    tracking_steps: [
+      { label: "Order Confirmed", done: true },
+      { label: "Processing", done: true },
+      { label: "Shipped", done: true },
+      { label: "Delivered", done: false }
+    ]
   });
+}
+
+registerPage("tracking", () => {
+  void renderTrackingPage();
 });
 
 registerPage("notifications", async () => {
@@ -310,11 +470,12 @@ registerPage("notifications", async () => {
   getPageMain().innerHTML = `
     <div class="container page-hero"><h1>Notifications</h1></div>
     <div class="container card" style="padding:0;max-width:700px;margin-bottom:3rem">
-      ${notes.map((n) => `
-        <div class="notification-item ${n.unread ? "unread" : ""}">
+      ${notes.length ? notes.map((n) => `
+        <div class="notification-item ${n.unread || !n.read_at ? "unread" : ""}">
           <div class="notification-icon">◆</div>
           <div><strong>${n.title}</strong><p style="color:var(--color-text-muted);font-size:0.875rem">${n.message || n.msg || n.body || ""}</p><small style="color:var(--color-text-dim)">${n.time || n.created_at || ""}</small></div>
-        </div>`).join("")}
+        </div>`).join("")
+        : `<div class="empty-state" style="padding:2rem"><p style="color:var(--color-text-muted)">No notifications yet.</p></div>`}
     </div>`;
 });
 
@@ -331,11 +492,12 @@ registerPage("addresses", async () => {
   getPageMain().innerHTML = `
     <div class="container page-hero"><h1>Address Book</h1></div>
     <div class="container" style="max-width:700px;padding-bottom:3rem">
-      <div id="address-list">${addresses.map((a) => `
+      <div id="address-list">${addresses.length ? addresses.map((a) => `
         <div class="address-card ${a.default ? "default" : ""}">
           ${a.default ? '<span class="badge badge-gold default-badge">Default</span>' : ""}
-          <h3>${a.name}</h3><p style="color:var(--color-text-muted)">${a.line1}, ${a.city} ${a.zip}</p>
-        </div>`).join("")}</div>
+          <h3>${a.name || a.label || "Address"}</h3><p style="color:var(--color-text-muted)">${a.line1}, ${a.city} ${a.zip || a.postal_code || ""}</p>
+        </div>`).join("")
+        : `<div class="empty-state" style="padding:1.5rem 0"><p style="color:var(--color-text-muted)">No saved addresses yet.</p></div>`}</div>
       <form class="card" style="padding:2rem;margin-top:2rem" id="add-address">
         <h3 style="margin-bottom:1rem">Add New Address</h3>
         <div class="form-group"><label class="form-label">Label</label><input class="form-input" name="name" required></div>
@@ -398,33 +560,62 @@ registerPage("dashboard", async () => {
   const user = auth.getUser();
   getPageMain().innerHTML = `
     <div class="container dashboard-layout dashboard-panel-page">
-      <aside class="dashboard-sidebar"><nav class="dashboard-nav">
-        <span class="dashboard-nav-label active">Profile</span>
-        <a href="orders.html">Orders</a>
-        <a href="wishlist.html">Wishlist</a>
-        <a href="addresses.html">Addresses</a>
-        <a href="notifications.html">Notifications</a>
-        <a href="tracking.html">Tracking</a>
-        <a href="#" id="dash-logout">Logout</a>
-      </nav></aside>
-      <div>
-        <h1 style="margin-bottom:0.5rem">Welcome, ${user.firstName || user.first_name}</h1>
-        <p style="color:var(--color-text-muted);margin-bottom:0.5rem">${user.email}</p>
-        <span class="verified-badge" style="margin-bottom:2rem;display:inline-flex">Buyer Panel</span>
-        <div class="stat-cards">
-          <div class="stat-card"><h3>Orders</h3><p class="value" id="dash-orders">…</p></div>
-          <div class="stat-card"><h3>Wishlist</h3><p class="value" id="dash-wish">…</p></div>
-          <div class="stat-card"><h3>Member Since</h3><p class="value" style="font-size:1.25rem">${(user.created_at || "").slice(0, 4) || "—"}</p></div>
+      <aside class="dashboard-sidebar">
+        <div class="dashboard-sidebar-header">
+          <div class="dashboard-sidebar-avatar">${(user.firstName || user.first_name || "U").charAt(0).toUpperCase()}</div>
+          <div class="dashboard-sidebar-name">${user.firstName || user.first_name || ""} ${user.lastName || user.last_name || ""}</div>
+          <div class="dashboard-sidebar-role">Buyer Account</div>
         </div>
-        <form class="card" style="padding:2rem" id="profile-form">
-          <h3 style="margin-bottom:1.5rem">Profile Settings</h3>
-          <div class="grid-2">
-            <div class="form-group"><label class="form-label">First Name</label><input class="form-input" name="firstName" value="${user.firstName || user.first_name || ""}"></div>
-            <div class="form-group"><label class="form-label">Last Name</label><input class="form-input" name="lastName" value="${user.lastName || user.last_name || ""}"></div>
+        <nav class="dashboard-nav">
+          <span class="dashboard-nav-label active">Profile</span>
+          <a href="orders.html">Orders</a>
+          <a href="wishlist.html">Wishlist</a>
+          <a href="addresses.html">Addresses</a>
+          <a href="notifications.html">Notifications</a>
+          <a href="tracking.html">Tracking</a>
+          <a href="#" id="dash-logout">Logout</a>
+        </nav>
+      </aside>
+      <div>
+        <div class="dashboard-panel-header">
+          <div>
+            <h1>Welcome back, ${user.firstName || user.first_name}</h1>
+            <p>${user.email}</p>
           </div>
-          <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" value="${user.email || ""}" disabled></div>
-          <button type="submit" class="btn btn-primary">Save Changes</button>
-        </form>
+          <span class="verified-badge">Buyer Panel</span>
+        </div>
+        <div class="stat-cards">
+          <div class="stat-card">
+            <h3>Total Orders</h3>
+            <span class="value" id="dash-orders">…</span>
+            <span class="value-sub">Lifetime</span>
+          </div>
+          <div class="stat-card">
+            <h3>Wishlist</h3>
+            <span class="value" id="dash-wish">…</span>
+            <span class="value-sub">Saved items</span>
+          </div>
+          <div class="stat-card">
+            <h3>Member Since</h3>
+            <span class="value">${(user.created_at || "").slice(0, 4) || "—"}</span>
+            <span class="value-sub">Verified buyer</span>
+          </div>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3 class="admin-card-title">Profile Settings</h3>
+          </div>
+          <div class="admin-card-body">
+            <form id="profile-form">
+              <div class="grid-2">
+                <div class="form-group"><label class="form-label">First Name</label><input class="form-input" name="firstName" value="${user.firstName || user.first_name || ""}"></div>
+                <div class="form-group"><label class="form-label">Last Name</label><input class="form-input" name="lastName" value="${user.lastName || user.last_name || ""}"></div>
+              </div>
+              <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" value="${user.email || ""}" disabled></div>
+              <button type="submit" class="btn btn-primary">Save Changes</button>
+            </form>
+          </div>
+        </div>
       </div>
     </div>`;
   void Promise.all([
@@ -447,9 +638,9 @@ registerPage("dashboard", async () => {
   ]);
   document.getElementById("profile-form").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const ok = await auth.updateProfile(Object.fromEntries(new FormData(e.target)));
-    if (ok) toast.success("Profile updated");
-    else toast.error("Update failed");
+    const result = await auth.updateProfile(Object.fromEntries(new FormData(e.target)));
+    if (result?.success) toast.success("Profile updated");
+    else toast.error(result?.message || "Update failed");
   });
   document.getElementById("dash-logout")?.addEventListener("click", async (e) => {
     e.preventDefault();
@@ -485,42 +676,84 @@ registerPage("seller", async () => {
   getPageMain().innerHTML = `
     <div class="container dashboard-layout dashboard-panel-page">
       <div class="dashboard-panel-header">
-        <h1>Seller Dashboard</h1><span class="verified-badge">✓ Verified Seller</span>
+        <div>
+          <h1>Seller Dashboard</h1>
+          <p>${user.email || ""}</p>
+        </div>
+        <span class="verified-badge">✓ Verified Seller</span>
       </div>
-      <aside class="dashboard-sidebar"><nav class="dashboard-nav">
-        <a href="seller-dashboard.html" class="active">Overview</a>
-        <a href="shop.html">View Shop</a>
-        <a href="../bid/submit.html">Submit to Auction Item</a>
-        <a href="../bid/seller-dashboard.html">Auction Panel</a>
-        <a href="orders.html">Orders</a>
-        <a href="dashboard.html">Buyer Panel</a>
-        <a href="#" id="seller-logout">Logout</a>
-      </nav></aside>
+      <aside class="dashboard-sidebar">
+        <div class="dashboard-sidebar-header">
+          <div class="dashboard-sidebar-avatar">${(user.firstName || user.first_name || "S").charAt(0).toUpperCase()}</div>
+          <div class="dashboard-sidebar-name">${user.firstName || user.first_name || ""} ${user.lastName || user.last_name || ""}</div>
+          <div class="dashboard-sidebar-role">Seller Account</div>
+        </div>
+        <nav class="dashboard-nav">
+          <a href="seller-dashboard.html" class="active">Overview</a>
+          <a href="shop.html">View Shop</a>
+          <a href="../bid/submit.html">Submit Auction Item</a>
+          <a href="../bid/seller-dashboard.html">Auction Panel</a>
+          <a href="orders.html?view=seller">My Orders</a>
+          <a href="dashboard.html">Buyer Panel</a>
+          <a href="#" id="seller-logout">Logout</a>
+        </nav>
+      </aside>
       <div>
         <div class="stat-cards">
-          <div class="stat-card"><h3>Revenue</h3><p class="value">${formatPrice(analytics.revenue || 0)}</p></div>
-          <div class="stat-card"><h3>Orders</h3><p class="value">${analytics.orders || 0}</p></div>
-          <div class="stat-card"><h3>Products</h3><p class="value">${analytics.products || sellerProducts.length}</p></div>
+          <div class="stat-card">
+            <h3>Total Revenue</h3>
+            <span class="value">${formatPrice(analytics.revenue || 0)}</span>
+            <span class="value-sub">All time</span>
+          </div>
+          <div class="stat-card">
+            <h3>Orders Received</h3>
+            <span class="value">${analytics.orders || 0}</span>
+            <span class="value-sub">Processed</span>
+          </div>
+          <div class="stat-card">
+            <h3>Active Products</h3>
+            <span class="value">${analytics.products || sellerProducts.length}</span>
+            <span class="value-sub">Listed</span>
+          </div>
         </div>
-        <div class="card" style="padding:2rem;margin-bottom:2rem">
-          <h3 style="margin-bottom:1rem">Sales Analytics</h3>
-          <div class="chart-bar">${[40, 65, 45, 80, 55, 90, 70].map((h) => `<div class="bar" style="height:${h}%"></div>`).join("")}</div>
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3 class="admin-card-title">Sales Analytics</h3>
+            <span class="dashboard-card-meta">Last 7 days</span>
+          </div>
+          <div class="admin-card-body">
+            <div class="chart-bar">${renderSalesChart(analytics.weekly_sales || [])}</div>
+          </div>
         </div>
-        <div class="card table-responsive" style="padding:1rem">
-          <h3 style="margin-bottom:1rem">Product Management</h3>
-          <table class="data-table"><thead><tr><th>Product</th><th>Price</th><th>Stock</th><th>Actions</th></tr></thead>
-          <tbody>${sellerProducts.length ? sellerProducts.map((p) => `
-            <tr data-product-id="${p.id}"><td>${p.name}</td><td>${formatPrice(p.discountPrice || p.price)}</td><td>${p.stock}</td>
-            <td><button type="button" class="btn btn-ghost btn-sm edit-product-btn" data-id="${p.id}">Edit</button></td></tr>`).join("")
-            : `<tr><td colspan="4">No products yet</td></tr>`}</tbody></table>
-          <button type="button" class="btn btn-primary" style="margin-top:1rem" id="upload-product">+ Upload Product</button>
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3 class="admin-card-title">Product Management</h3>
+            <button type="button" class="btn btn-primary btn-sm" id="upload-product">+ Add Product</button>
+          </div>
+          <div class="admin-card-body" style="padding:0">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead><tr><th>Product</th><th>Price</th><th>Stock</th><th>Actions</th></tr></thead>
+                <tbody>${sellerProducts.length ? sellerProducts.map((p) => `
+                  <tr data-product-id="${p.id}">
+                    <td>${p.name}</td>
+                    <td>${formatPrice(p.discountPrice || p.price)}</td>
+                    <td>${p.stock}</td>
+                    <td><button type="button" class="btn btn-ghost btn-sm edit-product-btn" data-id="${p.id}">Edit</button></td>
+                  </tr>`).join("")
+                  : `<tr><td colspan="4">No products yet. Add your first product above.</td></tr>`}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
     </div>`;
   document.getElementById("upload-product")?.addEventListener("click", () => openSellerProductModal());
   document.querySelectorAll(".edit-product-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
-      window.location.href = `product.html?id=${btn.dataset.id}`;
+      const product = sellerProducts.find((p) => String(p.id) === String(btn.dataset.id));
+      openSellerProductModal(product || { id: btn.dataset.id });
     });
   });
   document.getElementById("seller-logout")?.addEventListener("click", async (e) => {
@@ -555,8 +788,27 @@ registerPage("bid-history", async () => {
     </div>`;
 });
 
-registerPage("bid-seller", () => {
+registerPage("bid-seller", async () => {
   if (!auth.requireRole("seller", "admin")) return;
+
+  let liveCount = 0;
+  let totalAuctions = 0;
+  let earnings = 0;
+  if (!API_CONFIG.USE_MOCK) {
+    const [auctionRes, analyticsRes] = await Promise.all([
+      apiClient.get("/seller/auctions"),
+      apiClient.get("/seller/analytics")
+    ]);
+    if (auctionRes.success) {
+      const auctions = Array.isArray(auctionRes.data) ? auctionRes.data : [];
+      totalAuctions = auctions.length;
+      liveCount = auctions.filter((a) => a.status === "active").length;
+    }
+    if (analyticsRes.success) {
+      earnings = analyticsRes.data?.revenue || 0;
+    }
+  }
+
   getPageMain().innerHTML = `
     <div class="container dashboard-layout dashboard-panel-page">
       <div class="dashboard-panel-header">
@@ -573,9 +825,9 @@ registerPage("bid-seller", () => {
       </nav></aside>
       <div>
         <div class="stat-cards">
-          <div class="stat-card"><h3>Live Auctions</h3><p class="value">4</p></div>
-          <div class="stat-card"><h3>Total Bids</h3><p class="value">127</p></div>
-          <div class="stat-card"><h3>Earnings</h3><p class="value">$42K</p></div>
+          <div class="stat-card"><h3>Live Auctions</h3><p class="value">${liveCount}</p></div>
+          <div class="stat-card"><h3>Total Listings</h3><p class="value">${totalAuctions}</p></div>
+          <div class="stat-card"><h3>Revenue</h3><p class="value">${formatPrice(earnings)}</p></div>
         </div>
         <div class="card" style="padding:2rem"><h3>Live Bid Monitoring</h3>
           <p style="color:var(--color-text-muted);margin:1rem 0">Monitor your active auctions in real-time.</p>
@@ -590,44 +842,109 @@ registerPage("bid-seller", () => {
   });
 });
 
-async function openSellerProductModal() {
+async function openSellerProductModal(existingProduct = null) {
   if (API_CONFIG.USE_MOCK) {
     toast.info("Enable the Laravel API (USE_MOCK: false) to upload products.");
     return;
+  }
+  const isEdit = Boolean(existingProduct?.id);
+  let product = existingProduct;
+  if (isEdit && !product?.name) {
+    const res = await apiClient.get(`/seller/products/${existingProduct.id}`);
+    if (res.success) product = res.data;
   }
   const [categories, brands] = await Promise.all([
     dataService.getCategories(),
     dataService.getBrands()
   ]);
+
+  const brandOptions = brands.map((b) =>
+    `<option value="${b.id}">${b.name}</option>`
+  ).join("");
+
+  const brandFieldHtml = isEdit
+    ? ""
+    : `<div class="form-group seller-brand-field" id="seller-brand-field">
+        <label class="form-label" for="brand-select">Brand</label>
+        <div id="brand-select-wrap">
+          <select class="form-select" name="brand_id" id="brand-select" required>
+            <option value="" disabled selected>Select a brand…</option>
+            ${brandOptions}
+            <option value="__new__">+ Add New Brand</option>
+          </select>
+        </div>
+        <div id="brand-new-wrap" class="seller-brand-new" hidden>
+          <input class="form-input" type="text" name="brand_name" id="brand-name-input"
+            placeholder="Enter your brand name" maxlength="255" autocomplete="off">
+          <button type="button" class="btn btn-ghost btn-sm seller-brand-cancel" id="brand-cancel-new">← Back to brand list</button>
+        </div>
+      </div>`;
+
   const overlay = document.createElement("div");
   overlay.className = "modal-overlay active";
   overlay.innerHTML = `
     <div class="modal" style="max-width:520px">
-      <div class="modal-header"><h2>Add Product</h2><button type="button" class="modal-close" data-close>✕</button></div>
+      <div class="modal-header"><h2>${isEdit ? "Edit Product" : "Add Product"}</h2><button type="button" class="modal-close" data-close>✕</button></div>
       <form class="modal-body" id="seller-product-form">
-        <div class="form-group"><label class="form-label">Name</label><input class="form-input" name="name" required></div>
+        <div class="form-group"><label class="form-label">Name</label><input class="form-input" name="name" required value="${product?.name || ""}"></div>
+        <div class="form-group"><label class="form-label">Category</label>
+          <select class="form-select" name="category_id" required>${categories.map((c) => `<option value="${c.id}"${product?.category === c.slug ? " selected" : ""}>${c.name}</option>`).join("")}</select></div>
+        ${brandFieldHtml}
         <div class="grid-2">
-          <div class="form-group"><label class="form-label">Category</label>
-            <select class="form-select" name="category_id" required>${categories.map((c) => `<option value="${c.id}">${c.name}</option>`).join("")}</select></div>
-          <div class="form-group"><label class="form-label">Brand</label>
-            <select class="form-select" name="brand_id" required>${brands.map((b) => `<option value="${b.id}">${b.name}</option>`).join("")}</select></div>
+          <div class="form-group"><label class="form-label">Price ($)</label><input type="number" class="form-input" name="price" min="1" required value="${product?.price ?? ""}"></div>
+          <div class="form-group"><label class="form-label">Stock</label><input type="number" class="form-input" name="stock" min="0" value="${product?.stock ?? 1}" required></div>
         </div>
-        <div class="grid-2">
-          <div class="form-group"><label class="form-label">Price ($)</label><input type="number" class="form-input" name="price" min="1" required></div>
-          <div class="form-group"><label class="form-label">Stock</label><input type="number" class="form-input" name="stock" min="0" value="1" required></div>
-        </div>
-        <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" name="description" rows="3"></textarea></div>
-        <div class="form-group"><label class="form-label">Product image</label><input type="file" name="image" accept="image/*"></div>
-        <button type="submit" class="btn btn-primary btn-block">Create Product</button>
+        <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" name="description" rows="3">${product?.description || ""}</textarea></div>
+        ${isEdit ? "" : `<div class="form-group"><label class="form-label">Product image</label><input type="file" name="image" accept="image/*"></div>`}
+        <button type="submit" class="btn btn-primary btn-block">${isEdit ? "Save Changes" : "Create Product"}</button>
       </form>
     </div>`;
   document.body.appendChild(overlay);
   const close = () => overlay.remove();
   overlay.querySelector("[data-close]")?.addEventListener("click", close);
   overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
+
+  if (!isEdit) {
+    initSellerBrandField(overlay);
+  }
+
   overlay.querySelector("#seller-product-form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const fd = new FormData(e.target);
+    const payload = {
+      name: fd.get("name"),
+      price: Number(fd.get("price")),
+      stock: Number(fd.get("stock")),
+      description: fd.get("description") || ""
+    };
+    if (isEdit) {
+      const res = await apiClient.put(`/seller/products/${product.id}`, payload);
+      if (res.success) {
+        toast.success("Product updated");
+        close();
+        window.location.reload();
+      } else {
+        toast.error(res.error || "Could not update product");
+      }
+      return;
+    }
+
+    const brandNewWrap = overlay.querySelector("#brand-new-wrap");
+    const isNewBrand = brandNewWrap && !brandNewWrap.hidden;
+    const brandName = (fd.get("brand_name") || "").toString().trim();
+    const brandId = fd.get("brand_id");
+
+    if (isNewBrand) {
+      if (!brandName) {
+        toast.error("Please enter a brand name");
+        overlay.querySelector("#brand-name-input")?.focus();
+        return;
+      }
+    } else if (!brandId || brandId === "__new__") {
+      toast.error("Please select a brand");
+      return;
+    }
+
     const images = [];
     const file = fd.get("image");
     if (file?.size) {
@@ -635,17 +952,17 @@ async function openSellerProductModal() {
       if (!up.success) { toast.error(up.error); return; }
       images.push(up.url);
     }
-    const res = await apiClient.post("/seller/products", {
-      name: fd.get("name"),
+
+    const createPayload = {
+      ...payload,
       category_id: fd.get("category_id"),
-      brand_id: fd.get("brand_id"),
-      price: Number(fd.get("price")),
-      stock: Number(fd.get("stock")),
-      description: fd.get("description") || "",
-      images
-    });
+      images,
+      ...(isNewBrand ? { brand_name: brandName } : { brand_id: brandId })
+    };
+
+    const res = await apiClient.post("/seller/products", createPayload);
     if (res.success) {
-      toast.success("Product created");
+      toast.success(isNewBrand ? "Product created with new brand" : "Product created");
       close();
       window.location.reload();
     } else {
@@ -653,3 +970,49 @@ async function openSellerProductModal() {
     }
   });
 }
+
+function initSellerBrandField(overlay) {
+  const brandSelect = overlay.querySelector("#brand-select");
+  const brandSelectWrap = overlay.querySelector("#brand-select-wrap");
+  const brandNewWrap = overlay.querySelector("#brand-new-wrap");
+  const brandNameInput = overlay.querySelector("#brand-name-input");
+
+  const showDropdown = () => {
+    brandNewWrap.hidden = true;
+    brandSelectWrap.hidden = false;
+    brandSelect.disabled = false;
+    brandNameInput.value = "";
+    brandNameInput.removeAttribute("required");
+    brandSelect.setAttribute("required", "");
+    if (brandSelect.value === "__new__") {
+      brandSelect.value = "";
+    }
+  };
+
+  const showNewBrand = () => {
+    brandSelectWrap.hidden = true;
+    brandNewWrap.hidden = false;
+    brandSelect.disabled = true;
+    brandSelect.removeAttribute("required");
+    brandNameInput.setAttribute("required", "");
+    brandNameInput.focus();
+  };
+
+  brandSelect?.addEventListener("change", () => {
+    if (brandSelect.value === "__new__") {
+      showNewBrand();
+    }
+  });
+
+  overlay.querySelector("#brand-cancel-new")?.addEventListener("click", showDropdown);
+}
+
+registerPage("404", () => {
+  getPageMain().innerHTML = `
+    <div class="container error-page" style="padding:4rem 0;text-align:center">
+      <div class="error-code">404</div>
+      <h1>Page Not Found</h1>
+      <p style="color:var(--color-text-muted);margin:1.5rem 0">The page you are looking for does not exist or has been moved.</p>
+      <a href="../index.html" class="btn btn-primary">Go Home</a>
+    </div>`;
+});

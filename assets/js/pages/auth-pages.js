@@ -3,15 +3,23 @@ import auth from "../modules/auth.js";
 import { API_CONFIG, ROLES } from "../config/constants.js";
 import { getSafeRedirectUrl } from "../utils/safeRedirect.js";
 import { getPageMain } from "../utils/pageMain.js";
+import { getPagePath } from "../utils/format.js";
 import toast from "../ui/toast.js";
 
-const page = document.body.dataset.page;
+function formatAuthError(error) {
+  if (!error) return "Something went wrong";
+  if (typeof error === "string") return error;
+  if (Array.isArray(error)) return error.join(" ");
+  if (typeof error === "object") {
+    return Object.values(error).flat().join(" ") || "Request failed";
+  }
+  return String(error);
+}
 
-registerPage(page, () => {
+function initAuthPage(isLogin) {
   document.body.classList.add("auth-page");
   const main = getPageMain();
   if (!main) return;
-  const isLogin = page === "login";
 
   main.innerHTML = `
     <div class="auth-visual" role="img" aria-label="Luxury fashion editorial photography">
@@ -55,9 +63,11 @@ registerPage(page, () => {
           <button type="submit" class="btn btn-primary btn-block" id="submit-btn">${isLogin ? "Sign In" : "Create Account"}</button>
         </form>
         <p class="auth-switch">
-          ${isLogin ? `Don't have an account? <a href="register.html">Register</a>` : `Already a member? <a href="login.html">Sign In</a>`}
+          ${isLogin
+            ? `Don't have an account? <a href="${getPagePath("register")}">Register</a>`
+            : `Already a member? <a href="${getPagePath("login")}">Sign In</a>`}
         </p>
-        ${isLogin && API_CONFIG.USE_MOCK ? `<div class="auth-demo-hints">
+        ${isLogin ? `<div class="auth-demo-hints">
           <p class="form-hint"><strong>Demo accounts</strong> (password: FashionX1!)</p>
           <p class="form-hint">Buyer: demo@fashionx.com</p>
           <p class="form-hint">Seller: seller@fashionx.com</p>
@@ -105,33 +115,42 @@ registerPage(page, () => {
     btn.disabled = true;
     btn.textContent = "Please wait...";
 
-    const result = isLogin
-      ? await auth.login(email, password, fd.get("remember") === "on")
-      : await auth.register({
-          email,
-          password,
-          first_name: fd.get("first_name"),
-          last_name: fd.get("last_name"),
-          role: fd.get("role")
-        });
+    try {
+      const result = isLogin
+        ? await auth.login(email, password, fd.get("remember") === "on")
+        : await auth.register({
+            email,
+            password,
+            first_name: fd.get("first_name"),
+            last_name: fd.get("last_name"),
+            role: fd.get("role")
+          });
 
-    if (result.success) {
-      if (!isLogin && auth.isSellerPending()) {
-        toast.success("Account created. Seller application is pending admin approval.");
-      } else {
-        toast.success(isLogin ? "Welcome back" : "Account created");
+      if (result.success) {
+        if (!isLogin && auth.isSellerPending()) {
+          toast.success("Account created. Seller application is pending admin approval.");
+        } else {
+          toast.success(isLogin ? "Welcome back" : "Account created");
+        }
+        const redirect = new URLSearchParams(location.search).get("redirect");
+        const target = getSafeRedirectUrl(redirect, auth.getDashboardPath(result.user.role));
+        if (window.__fxNavigate) {
+          window.__fxNavigate(target, { replace: true });
+        } else {
+          window.location.replace(target);
+        }
+        return;
       }
-      const redirect = new URLSearchParams(location.search).get("redirect");
-      const target = getSafeRedirectUrl(redirect, auth.getDashboardPath(result.user.role));
-      if (window.__fxNavigate) {
-        window.__fxNavigate(target, { replace: true });
-      } else {
-        window.location.replace(target);
-      }
-    } else {
-      toast.error(result.message);
-      btn.disabled = false;
-      btn.textContent = isLogin ? "Sign In" : "Create Account";
+
+      toast.error(formatAuthError(result.message));
+    } catch (err) {
+      toast.error(formatAuthError(err?.message || err));
     }
+
+    btn.disabled = false;
+    btn.textContent = isLogin ? "Sign In" : "Create Account";
   });
-});
+}
+
+registerPage("login", () => initAuthPage(true));
+registerPage("register", () => initAuthPage(false));

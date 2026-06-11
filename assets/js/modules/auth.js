@@ -10,6 +10,8 @@ import clearSessionData from "../utils/session.js";
 
 import { clearCatalogCache } from "../utils/catalogCache.js";
 
+import { getPagePath } from "../utils/format.js";
+
 
 
 class AuthManager {
@@ -110,29 +112,13 @@ class AuthManager {
 
 
   getDashboardPath(role = null) {
-
     const r = role || this.user?.role || ROLES.BUYER;
-
-    const path = window.location.pathname;
-
-    const base = path.includes("/pages/") || path.includes("/bid/") ? ".." : ".";
-
-    const route = ROUTES[r] || ROUTES.buyer;
-
-    return `${base}/${route}`;
-
+    const routeKey = r === ROLES.ADMIN ? "admin" : r === ROLES.SELLER ? "seller" : "dashboard";
+    return getPagePath(routeKey);
   }
 
-
-
   redirectToLogin() {
-
-    const path = window.location.pathname;
-
-    const base = path.includes("/pages/") || path.includes("/bid/") ? ".." : ".";
-
-    window.location.href = `${base}/pages/login.html?redirect=${encodeURIComponent(window.location.href)}`;
-
+    window.location.href = `${getPagePath("login")}?redirect=${encodeURIComponent(window.location.href)}`;
   }
 
 
@@ -160,9 +146,9 @@ class AuthManager {
 
 
   _hashPassword(password) {
-
+    // WARNING: This is mock-only. Real auth uses Laravel's bcrypt via API.
+    // btoa is encoding, not hashing — never use this pattern in production.
     return btoa(unescape(encodeURIComponent(password)));
-
   }
 
 
@@ -209,7 +195,7 @@ class AuthManager {
 
       if (!res.success) {
 
-        return { success: false, message: res.error || "Login failed" };
+        return { success: false, message: res.error || res.errors || "Login failed" };
 
       }
 
@@ -221,9 +207,13 @@ class AuthManager {
 
 
 
+    // ============================================================
+    // MOCK MODE — for local development only (USE_MOCK: true)
+    // All credentials below are demo accounts that DO NOT exist
+    // in any real database. Set USE_MOCK: false for production.
+    // ============================================================
+
     await this._simulateDelay();
-
-
 
     if (email === "demo@fashionx.com" && password === "FashionX1!") {
 
@@ -358,9 +348,12 @@ class AuthManager {
       });
 
       if (!res.success) {
-
-        return { success: false, message: res.error || "Registration failed" };
-
+        return {
+          success: false,
+          message: res.error || "Registration failed",
+          status: res.status,
+          errors: res.errors
+        };
       }
 
       const payload = res.data;
@@ -577,7 +570,11 @@ class AuthManager {
 
     apiClient.setToken(this.session.token);
 
-    await this._syncSessionData();
+    try {
+      await this._syncSessionData();
+    } catch (_) {
+      /* Login should succeed even if cart/wishlist sync fails */
+    }
 
     window.dispatchEvent(new CustomEvent("authChanged", { detail: { loggedIn: true, user: this.user } }));
 
@@ -623,7 +620,7 @@ class AuthManager {
 
   async updateProfile(updates) {
 
-    if (!this.user) return false;
+    if (!this.user) return { success: false, message: "Not logged in" };
 
     if (!API_CONFIG.USE_MOCK) {
 
@@ -647,11 +644,11 @@ class AuthManager {
 
         window.dispatchEvent(new CustomEvent("authChanged", { detail: { user: this.user } }));
 
-        return true;
+        return { success: true };
 
       }
 
-      return false;
+      return { success: false, message: res.error || "Profile update failed" };
 
     }
 
@@ -689,7 +686,7 @@ class AuthManager {
 
     window.dispatchEvent(new CustomEvent("authChanged", { detail: { user: this.user } }));
 
-    return true;
+    return { success: true };
 
   }
 

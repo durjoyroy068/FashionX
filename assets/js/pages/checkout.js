@@ -5,6 +5,7 @@ import Storage from "../utils/storage.js";
 import { STORAGE_KEYS } from "../config/constants.js";
 import { mapShippingForm, mapPaymentForm, formatShippingDisplay } from "../utils/formData.js";
 import { formatPrice } from "../utils/format.js";
+import { formatCardNumber, validateCardNumber, validateCvv } from "../utils/cardValidation.js";
 
 let step = 1;
 
@@ -29,12 +30,14 @@ function render(user) {
         <div class="checkout-step ${step >= 2 ? "active" : ""} ${step > 2 ? "completed" : ""}"><span class="step-number">2</span> Payment</div>
         <div class="checkout-step ${step >= 3 ? "active" : ""}"><span class="step-number">3</span> Review</div>
       </div>
-      <div id="step-content"></div>
-      <div class="cart-summary checkout-summary">
-        <div class="summary-row"><span>Subtotal</span><span>${formatPrice(cart.getSubtotal())}</span></div>
-        ${discount > 0 ? `<div class="summary-row"><span>Discount</span><span>-${formatPrice(discount)}</span></div>` : ""}
-        <div class="summary-row"><span>Shipping</span><span>${cart.getShipping() === 0 ? "Complimentary" : formatPrice(cart.getShipping())}</span></div>
-        <div class="summary-row total"><span>Total</span><span>${formatPrice(cart.getTotal())}</span></div>
+      <div class="checkout-layout">
+        <div id="step-content"></div>
+        <div class="cart-summary checkout-summary">
+          <div class="summary-row"><span>Subtotal</span><span>${formatPrice(cart.getSubtotal())}</span></div>
+          ${discount > 0 ? `<div class="summary-row"><span>Discount</span><span>-${formatPrice(discount)}</span></div>` : ""}
+          <div class="summary-row"><span>Shipping</span><span>${cart.getShipping() === 0 ? "Complimentary" : formatPrice(cart.getShipping())}</span></div>
+          <div class="summary-row total"><span>Total</span><span>${formatPrice(cart.getTotal())}</span></div>
+        </div>
       </div>
     </div>`;
   renderStep(user);
@@ -51,17 +54,15 @@ function validatePaymentForm(form) {
   const method = form.querySelector('input[name="payment_method"]:checked')?.value || "card";
   if (method === "paypal") return true;
 
-  const card = (form.card_number?.value || "").replace(/\s/g, "");
-  const expiry = form.expiry?.value || "";
-  const cvv = form.cvv?.value || "";
-
-  if (!/^\d{16}$/.test(card)) {
-    form.card_number?.setCustomValidity("Enter a valid 16-digit card number");
+  const cardResult = validateCardNumber(form.card_number?.value || "");
+  if (!cardResult.valid) {
+    form.card_number?.setCustomValidity(cardResult.message);
     form.card_number?.reportValidity();
     return false;
   }
   form.card_number?.setCustomValidity("");
 
+  const expiry = form.expiry?.value || "";
   if (!/^(0[1-9]|1[0-2])\/[0-9]{2}$/.test(expiry)) {
     form.expiry?.setCustomValidity("Use MM/YY format");
     form.expiry?.reportValidity();
@@ -69,8 +70,9 @@ function validatePaymentForm(form) {
   }
   form.expiry?.setCustomValidity("");
 
-  if (!/^\d{3,4}$/.test(cvv)) {
-    form.cvv?.setCustomValidity("Enter a valid CVV");
+  const cvvResult = validateCvv(form.cvv?.value || "", cardResult.type);
+  if (!cvvResult.valid) {
+    form.cvv?.setCustomValidity(cvvResult.message);
     form.cvv?.reportValidity();
     return false;
   }
@@ -128,7 +130,7 @@ function renderStep(user) {
         <div id="card-fields">
           <div class="form-group"><label class="form-label" for="card_number">Card Number</label>
             <input class="form-input" id="card_number" name="card_number" inputmode="numeric" autocomplete="cc-number"
-              maxlength="19" placeholder="4242 4242 4242 4242"></div>
+              maxlength="19" placeholder="4242 4242 4242 4242 or Amex 3782 822463 10005"></div>
           <div class="grid-2">
             <div class="form-group"><label class="form-label" for="expiry">Expiry</label>
               <input class="form-input" id="expiry" name="expiry" autocomplete="cc-exp" placeholder="MM/YY"></div>
@@ -146,8 +148,7 @@ function renderStep(user) {
 
     const cardInput = document.getElementById("card_number");
     cardInput?.addEventListener("input", (e) => {
-      const digits = e.target.value.replace(/\D/g, "").slice(0, 16);
-      e.target.value = digits.replace(/(\d{4})(?=\d)/g, "$1 ").trim();
+      e.target.value = formatCardNumber(e.target.value);
     });
 
     const togglePayment = () => {

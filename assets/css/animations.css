@@ -25,8 +25,8 @@
 
 .reveal {
   opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 0.8s ease, transform 0.8s ease;
+  transform: translateY(16px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
 }
 
 .reveal.visible {
@@ -115,4 +115,52 @@
 #nav-progress,
 .nav-progress {
   display: none !important;
+}
+
+/* Page content transitions (SPA navigateTo) */
+.page-main {
+  transition: opacity var(--transition-page), transform var(--transition-page);
+}
+
+.page-exit {
+  opacity: 0;
+  transform: translateY(-8px);
+  pointer-events: none;
+}
+
+.page-enter {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Image lazy-load fade */
+img[loading="lazy"] {
+  transition: opacity 0.4s ease;
+}
+
+img[loading="lazy"].loaded {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .page-exit,
+  .page-enter,
+  .page-enter-active {
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }

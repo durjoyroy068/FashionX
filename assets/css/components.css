@@ -827,3 +827,65 @@
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.5; transform: scale(1.2); }
 }
+
+/* Motion enhancements */
+.btn:hover:not(:disabled) {
+  will-change: transform;
+}
+
+.card:hover {
+  will-change: transform, box-shadow;
+}
+
+.product-card__media img {
+  will-change: transform;
+}
+
+.badge {
+  transition: background var(--transition-fast), color var(--transition-fast), transform var(--transition-micro);
+}
+
+.form-input,
+.form-select,
+.form-textarea,
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+select,
+textarea {
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+}
+
+.filter-option {
+  transition: color var(--transition-fast);
+}
+
+.tab-btn {
+  transition: color var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.qty-selector button {
+  transition: background var(--transition-fast), transform var(--transition-micro);
+}
+
+.qty-selector button:active {
+  transform: scale(0.92);
+}
+
+.price-current,
+.product-price {
+  transition: color var(--transition-fast);
+}
+
+.modal-overlay {
+  transition: opacity var(--transition-modal), visibility var(--transition-modal);
+}
+
+.modal {
+  transition: transform var(--transition-modal), opacity var(--transition-modal);
+}
+
+.toast {
+  transition: transform var(--transition-smooth), opacity var(--transition-smooth);
+}

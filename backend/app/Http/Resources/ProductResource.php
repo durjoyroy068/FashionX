@@ -25,6 +25,8 @@ class ProductResource extends JsonResource
             'rating' => (float) $this->rating,
             'reviewCount' => (int) $this->review_count,
             'stock' => (int) $this->stock,
+            'stock_quantity' => (int) $this->stock,
+            'in_stock' => $this->stock > 0,
             'featured' => (bool) $this->featured,
             'is_active' => (bool) $this->is_active,
             'badges' => $this->badges ?? [],

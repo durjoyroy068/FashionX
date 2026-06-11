@@ -6,7 +6,7 @@ const PER_PAGE = 8;
 let currentPage = 1;
 let allProducts = [];
 
-registerPage("shop", async () => {
+function paintShopShell() {
   (document.getElementById("main-content") || document.querySelector(".page-main")).innerHTML = `
     <div class="container page-hero"><h1>Luxury Collection</h1><p>Curated premium fashion from verified brands</p></div>
     <div class="container shop-layout" style="padding-bottom:3rem">
@@ -38,9 +38,11 @@ registerPage("shop", async () => {
         <div style="text-align:center"><button class="btn btn-outline" id="load-more">Load More</button></div>
       </div>
     </div>`;
+}
 
+function readFiltersFromUrl() {
   const params = new URLSearchParams(window.location.search);
-  const filters = {
+  return {
     category: params.get("category") || "",
     brand: params.get("brand") || "",
     badge: params.get("badge") || "",
@@ -49,34 +51,9 @@ registerPage("shop", async () => {
     maxPrice: params.get("max") ? Number(params.get("max")) : null,
     inStock: params.get("instock") === "1"
   };
+}
 
-  const grid = document.getElementById("product-grid");
-  const sortEl = document.getElementById("sort-select");
-  if (sortEl && filters.sort) sortEl.value = filters.sort;
-
-  const cachedCategories = dataService.peekCategories();
-  const cachedBrands = dataService.peekBrands();
-  if (cachedCategories?.length) {
-    populateFilters(cachedCategories, cachedBrands || [], filters);
-  }
-
-  if (dataService.peekProducts()) {
-    allProducts = await dataService.searchProducts("", filters);
-    currentPage = 1;
-    renderPage();
-  } else {
-    showSkeletonGrid(grid);
-  }
-
-  const [categories, brands] = await Promise.all([
-    dataService.getCategories(),
-    dataService.getBrands()
-  ]);
-  populateFilters(categories, brands, filters);
-  allProducts = await dataService.searchProducts("", filters);
-  currentPage = 1;
-  renderPage();
-
+function bindShopEvents(filters) {
   document.getElementById("sort-select")?.addEventListener("change", (e) => {
     filters.sort = e.target.value;
     reload(filters);
@@ -95,6 +72,40 @@ registerPage("shop", async () => {
   document.getElementById("clear-filters")?.addEventListener("click", () => {
     window.location.href = "shop.html";
   });
+}
+
+async function hydrateShop() {
+  const filters = readFiltersFromUrl();
+  const grid = document.getElementById("product-grid");
+  const sortEl = document.getElementById("sort-select");
+  if (sortEl && filters.sort) sortEl.value = filters.sort;
+
+  const cachedCategories = dataService.peekCategories();
+  const cachedBrands = dataService.peekBrands();
+  if (cachedCategories?.length) {
+    populateFilters(cachedCategories, cachedBrands || [], filters);
+  }
+
+  if (!dataService.peekProducts()?.length) {
+    showSkeletonGrid(grid);
+  }
+
+  const [categories, brands, products] = await Promise.all([
+    dataService.getCategories(),
+    dataService.getBrands(),
+    dataService.searchProducts("", filters)
+  ]);
+
+  populateFilters(categories, brands, filters);
+  allProducts = products;
+  currentPage = 1;
+  renderPage();
+  bindShopEvents(filters);
+}
+
+registerPage("shop", () => {
+  paintShopShell();
+  void hydrateShop();
 });
 
 async function reload(filters) {

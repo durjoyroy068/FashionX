@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\V1\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Api\V1\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Api\V1\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Api\V1\AuctionController;
+use App\Http\Controllers\Api\V1\AuctionPaymentController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\SellerController;
 use App\Http\Controllers\Api\V1\ShippingAddressController;
@@ -31,11 +32,29 @@ use App\Http\Controllers\Api\V1\WishlistController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
-    Route::get('/health', fn () => response()->json(['success' => true, 'message' => 'FashionX API']));
+    Route::get('/health', function () {
+        $dbOk = true;
+        try {
+            \Illuminate\Support\Facades\DB::connection()->getPdo();
+        } catch (\Exception $e) {
+            $dbOk = false;
+        }
 
-    Route::post('/auth/register', [AuthController::class, 'register']);
-    Route::post('/auth/login', [AuthController::class, 'login']);
-    Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword']);
+        return response()->json([
+            'success' => $dbOk,
+            'message' => 'FashionX API',
+            'database' => $dbOk ? 'connected' : 'disconnected',
+            'version' => '1.0.0',
+            'env' => app()->environment(),
+        ], $dbOk ? 200 : 503);
+    });
+
+    Route::post('/auth/register', [AuthController::class, 'register'])
+        ->middleware(app()->environment('local', 'testing') ? 'throttle:15,1' : 'throttle:5,1');
+    Route::post('/auth/login', [AuthController::class, 'login'])
+        ->middleware(app()->environment('local', 'testing') ? 'throttle:30,1' : 'throttle:10,1');
+    Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword'])
+        ->middleware('throttle:3,5');
     Route::post('/auth/reset-password', [AuthController::class, 'resetPassword']);
     Route::get('/auth/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
         ->middleware('signed')
@@ -96,6 +115,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/orders', [OrderController::class, 'store']);
         Route::get('/orders', [OrderController::class, 'index']);
         Route::get('/orders/{id}', [OrderController::class, 'show']);
+        Route::get('/orders/{id}/tracking', [OrderController::class, 'tracking']);
         Route::get('/orders/{id}/invoice', [OrderController::class, 'invoice']);
 
         Route::get('/cart', [CartController::class, 'index']);
@@ -111,8 +131,11 @@ Route::prefix('v1')->group(function () {
         Route::post('/reviews', [ReviewController::class, 'store']);
         Route::post('/reviews/{id}/report', [ReviewController::class, 'report']);
 
-        Route::post('/auctions/{id}/bids', [AuctionController::class, 'placeBid']);
+        Route::post('/auctions/{id}/bids', [AuctionController::class, 'placeBid'])
+            ->middleware('throttle:10,1');
         Route::get('/me/auction-bids', [AuctionController::class, 'myBids']);
+        Route::post('/auctions/payments/verify', [AuctionPaymentController::class, 'verify']);
+        Route::get('/auctions/payments/status', [AuctionPaymentController::class, 'status']);
 
         Route::get('/payments/{id}', [PaymentController::class, 'show']);
 
@@ -155,6 +178,7 @@ Route::prefix('v1')->group(function () {
             Route::apiResource('products', \App\Http\Controllers\Api\V1\Seller\ProductController::class);
             Route::get('/orders', [\App\Http\Controllers\Api\V1\Seller\OrderController::class, 'index']);
             Route::get('/analytics', [\App\Http\Controllers\Api\V1\Seller\AnalyticsController::class, 'index']);
+            Route::get('/payouts/summary', [\App\Http\Controllers\Api\V1\Seller\PayoutController::class, 'summary']);
             Route::apiResource('auctions', \App\Http\Controllers\Api\V1\Seller\AuctionController::class);
         });
     });

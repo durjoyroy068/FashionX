@@ -68,6 +68,8 @@ Open http://127.0.0.1:3456 — `assets/js/config/constants.js` should have `USE_
 | Role | Email | Password |
 |------|-------|----------|
 | Buyer | demo@fashionx.com | FashionX1! |
+| Buyer | buyer@fashionx.com | FashionX1! |
+| Buyer (alt) | demo@fashionx.com | FashionX1! |
 | Seller | seller@fashionx.com | FashionX1! |
 | Admin | admin@fashionx.com | FashionX1! |
 

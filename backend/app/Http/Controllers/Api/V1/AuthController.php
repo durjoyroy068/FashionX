@@ -44,8 +44,13 @@ class AuthController extends Controller
         ]);
 
         $user->assignRole('customer');
-        event(new Registered($user));
-        $user->sendEmailVerificationNotification();
+
+        try {
+            event(new Registered($user));
+            $user->sendEmailVerificationNotification();
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
         if ($sellerApplication) {
             VendorRequest::create([
@@ -128,13 +133,18 @@ class AuthController extends Controller
     {
         $request->validate(['email' => 'required|email']);
 
-        $status = PasswordBroker::sendResetLink($request->only('email'));
-
-        if ($status !== PasswordBroker::RESET_LINK_SENT) {
-            return $this->error(__($status), 422);
+        try {
+            $status = PasswordBroker::sendResetLink($request->only('email'));
+        } catch (\Throwable $e) {
+            report($e);
+            return $this->error('Unable to send reset email right now. Try again later.', 503);
         }
 
-        return $this->success(null, 'Password reset link sent');
+        if ($status !== PasswordBroker::RESET_LINK_SENT) {
+            return $this->success(null, 'If that email exists, a password reset link has been sent');
+        }
+
+        return $this->success(null, 'If that email exists, a password reset link has been sent');
     }
 
     public function resetPassword(Request $request): JsonResponse
@@ -166,7 +176,13 @@ class AuthController extends Controller
         if ($user->hasVerifiedEmail()) {
             return $this->success(null, 'Email already verified');
         }
-        $user->sendEmailVerificationNotification();
+
+        try {
+            $user->sendEmailVerificationNotification();
+        } catch (\Throwable $e) {
+            report($e);
+            return $this->error('Unable to send verification email right now. Try again later.', 503);
+        }
 
         return $this->success(null, 'Verification email sent');
     }
