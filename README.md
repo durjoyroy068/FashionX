@@ -2,7 +2,7 @@
 
 Decoupled SPA frontend (vanilla HTML/CSS/JS) + Laravel 11 REST API + MySQL.
 
-See **[DEPLOYMENT.md](DEPLOYMENT.md)** for production setup.
+See **[DEPLOYMENT.md](DEPLOYMENT.md)** for production setup and **[SECURITY.md](SECURITY.md)** for attack coverage and hardening checklist.
 
 ## Local Development
 
@@ -91,6 +91,12 @@ Mock-mode demo logins in `auth.js` only apply when `USE_MOCK` is `true`.
 | Admin          | `pages/admin-dashboard.html`  |
 | Auction seller | `bid/seller-dashboard.html`   |
 
+## API Reference
+
+Full endpoint list (what the frontend calls vs what you need to configure): **[API_CHECKLIST.md](API_CHECKLIST.md)**
+
+---
+
 ## Architecture
 
 - Frontend calls REST API at `/api/v1` via `assets/js/api/client.js`
@@ -140,3 +146,5 @@ php artisan queue:work
 Terminal 3 — Frontend
 cd C:\Users\DELL\Downloads\FashionX
 python -m http.server 3460 --bind 127.0.0.1
+
+

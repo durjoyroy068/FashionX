@@ -51,7 +51,14 @@ async function render() {
   grid.querySelectorAll(".move-cart").forEach((btn) => {
     btn.addEventListener("click", async () => {
       const p = await dataService.getProductById(btn.dataset.id);
-      if (p) { cart.add(p); wishlist.remove(btn.dataset.id); toast.success("Moved to cart"); }
+      if (!p) return;
+      const res = await cart.add(p);
+      if (res?.success === false) {
+        toast.error(res.error || "Could not add to cart");
+        return;
+      }
+      wishlist.remove(btn.dataset.id);
+      toast.success("Moved to cart");
     });
   });
 }

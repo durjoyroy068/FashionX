@@ -1,5 +1,6 @@
 import apiClient from "../api/client.js";
 import { API_CONFIG } from "../config/constants.js";
+import { sanitizeUrl } from "./escape.js";
 
 export async function loadStorefrontBanners() {
   if (API_CONFIG.USE_MOCK) return [];
@@ -27,7 +28,16 @@ export function applyHeroBanner(banners) {
     if (label && hero.subtitle) label.textContent = hero.subtitle;
     if (h1 && hero.title) h1.textContent = hero.title;
     if (p && hero.link) {
-      p.innerHTML = `Discover authenticated luxury. <a href="${hero.link}" class="btn btn-outline" style="margin-left:0.5rem">Shop Now</a>`;
+      const safeLink = sanitizeUrl(hero.link);
+      if (safeLink) {
+        const link = document.createElement("a");
+        link.href = safeLink;
+        link.className = "btn btn-outline";
+        link.style.marginLeft = "0.5rem";
+        link.textContent = "Shop Now";
+        p.textContent = "Discover authenticated luxury. ";
+        p.appendChild(link);
+      }
     }
   }
 

@@ -5,6 +5,7 @@ namespace App\Services\Payment;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Transaction;
+use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
 
 class PaymentManager
@@ -70,14 +71,31 @@ class PaymentManager
         return array_merge($result, ['payment_id' => $payment->id]);
     }
 
-    public function handleWebhook(string $provider, array $payload): array
+    public function handleWebhook(string $provider, array $context): array
     {
         $gateway = $this->gateway($provider);
-        $verified = $gateway->verifyCallback($payload);
+        $verified = $gateway->verifyCallback($context);
 
-        if (!empty($payload['transaction_id'])) {
-            $payment = Payment::where('transaction_id', $payload['transaction_id'])->first();
-            if ($payment && $verified['success']) {
+        if (!($verified['success'] ?? false)) {
+            Log::warning('Payment webhook rejected', [
+                'provider' => $provider,
+                'ip' => $context['ip'] ?? null,
+                'error' => $verified['error'] ?? 'verification failed',
+            ]);
+
+            return $verified;
+        }
+
+        $payload = $context['payload'] ?? [];
+        $transactionId = $verified['transaction_id']
+            ?? $payload['transaction_id']
+            ?? $payload['tran_id']
+            ?? $payload['bank_tran_id']
+            ?? null;
+
+        if ($transactionId) {
+            $payment = Payment::where('transaction_id', $transactionId)->first();
+            if ($payment) {
                 $payment->update(['status' => 'completed']);
                 $payment->order?->update(['payment_status' => 'paid', 'status' => 'confirmed']);
             }

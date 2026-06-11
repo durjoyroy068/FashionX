@@ -106,7 +106,12 @@ class CartManager {
     }
 
     if (this._useApi()) {
-      const res = await apiClient.post("/cart", { product_id: pid, quantity: existing?.quantity || quantity });
+      const totalQty = existing
+        ? existing.quantity
+        : Math.min(quantity, product.stock || 99);
+      const res = existing
+        ? await apiClient.put(`/cart/${pid}`, { quantity: totalQty })
+        : await apiClient.post("/cart", { product_id: pid, quantity: totalQty });
       if (!res.success) {
         this._load();
         return { success: false, error: res.error };

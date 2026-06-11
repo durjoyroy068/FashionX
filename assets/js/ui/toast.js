@@ -18,10 +18,9 @@ class ToastManager {
     const container = this._ensureContainer();
     const toast = document.createElement("div");
     toast.className = `toast ${type}`;
-    toast.innerHTML = `
-      <span class="toast-icon">${type === "success" ? "✓" : type === "error" ? "✕" : "◆"}</span>
-      <span class="toast-message">${message}</span>
-    `;
+    const icon = type === "success" ? "✓" : type === "error" ? "✕" : "◆";
+    toast.innerHTML = `<span class="toast-icon">${icon}</span><span class="toast-message"></span>`;
+    toast.querySelector(".toast-message").textContent = String(message ?? "");
     container.appendChild(toast);
 
     setTimeout(() => {

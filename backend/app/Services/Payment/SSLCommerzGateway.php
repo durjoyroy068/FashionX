@@ -85,9 +85,22 @@ class SSLCommerzGateway implements PaymentGatewayInterface
 
     public function verifyCallback(array $payload): array
     {
-        $valid = ($payload['status'] ?? '') === 'VALID' || ($payload['val_id'] ?? null);
+        $data = $payload['payload'] ?? $payload;
+        $valId = $data['val_id'] ?? null;
 
-        return ['success' => (bool) $valid, 'status' => $valid ? 'completed' : 'failed'];
+        if ($valId) {
+            $amount = isset($data['amount']) ? (float) $data['amount'] : null;
+
+            return $this->validateTransaction($valId, $amount);
+        }
+
+        if (config('fashionx.payments.mode') === 'sandbox' && app()->environment('testing')) {
+            $valid = ($data['status'] ?? '') === 'VALID';
+
+            return ['success' => $valid, 'status' => $valid ? 'completed' : 'failed'];
+        }
+
+        return ['success' => false, 'error' => 'SSLCommerz val_id required for webhook verification'];
     }
 
     /**

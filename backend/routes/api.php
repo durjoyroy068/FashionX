@@ -45,7 +45,6 @@ Route::prefix('v1')->group(function () {
             'message' => 'FashionX API',
             'database' => $dbOk ? 'connected' : 'disconnected',
             'version' => '1.0.0',
-            'env' => app()->environment(),
         ], $dbOk ? 200 : 503);
     });
 
@@ -55,7 +54,8 @@ Route::prefix('v1')->group(function () {
         ->middleware(app()->environment('local', 'testing') ? 'throttle:30,1' : 'throttle:10,1');
     Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword'])
         ->middleware('throttle:3,5');
-    Route::post('/auth/reset-password', [AuthController::class, 'resetPassword']);
+    Route::post('/auth/reset-password', [AuthController::class, 'resetPassword'])
+        ->middleware('throttle:5,1');
     Route::get('/auth/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
         ->middleware('signed')
         ->name('api.verification.verify');
@@ -96,10 +96,13 @@ Route::prefix('v1')->group(function () {
         return response()->json(['success' => true, 'data' => $banners]);
     });
 
-    Route::post('/contact', [ContactController::class, 'store']);
-    Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe']);
+    Route::post('/contact', [ContactController::class, 'store'])
+        ->middleware('throttle:5,1');
+    Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe'])
+        ->middleware('throttle:5,1');
 
-    Route::post('/payments/webhook/{provider}', [PaymentController::class, 'webhook']);
+    Route::post('/payments/webhook/{provider}', [PaymentController::class, 'webhook'])
+        ->middleware('throttle:60,1');
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/auth/logout', [AuthController::class, 'logout']);

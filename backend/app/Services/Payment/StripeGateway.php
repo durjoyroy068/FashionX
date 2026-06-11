@@ -59,7 +59,45 @@ class StripeGateway implements PaymentGatewayInterface
 
     public function verifyCallback(array $payload): array
     {
-        return ['success' => ($payload['status'] ?? '') === 'succeeded', 'status' => 'completed'];
+        $rawBody = $payload['raw_body'] ?? null;
+        $headers = $payload['headers'] ?? [];
+        $sig = $headers['stripe-signature'][0] ?? $headers['Stripe-Signature'][0] ?? null;
+
+        if ($rawBody !== null && $sig) {
+            $secret = config('fashionx.payments.stripe.webhook_secret');
+            if (!$secret) {
+                return ['success' => false, 'error' => 'Stripe webhook secret not configured'];
+            }
+
+            try {
+                $event = \Stripe\Webhook::constructEvent($rawBody, $sig, $secret);
+            } catch (\Exception $e) {
+                return ['success' => false, 'error' => 'Invalid Stripe webhook signature'];
+            }
+
+            $object = $event->data->object ?? null;
+            $success = in_array($event->type, ['payment_intent.succeeded', 'charge.succeeded'], true);
+
+            return [
+                'success' => $success,
+                'status' => $success ? 'completed' : 'ignored',
+                'transaction_id' => $object->id ?? null,
+            ];
+        }
+
+        if ($this->allowUnsignedSandbox()) {
+            $data = $payload['payload'] ?? $payload;
+
+            return ['success' => ($data['status'] ?? '') === 'succeeded', 'status' => 'completed'];
+        }
+
+        return ['success' => false, 'error' => 'Unsigned Stripe webhook rejected'];
+    }
+
+    protected function allowUnsignedSandbox(): bool
+    {
+        return config('fashionx.payments.mode') === 'sandbox'
+            && app()->environment('testing');
     }
 
     public function refund(Payment $payment, float $amount): array

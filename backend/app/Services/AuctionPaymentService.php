@@ -21,10 +21,16 @@ class AuctionPaymentService
         string $provider = 'manual',
         array $gatewayPayload = []
     ): AuctionPayment {
+        if ($provider === 'manual' && !app()->environment('local', 'testing')) {
+            throw new \RuntimeException('Manual payment verification is disabled in production');
+        }
+
         $auction = null;
         if ($auctionId) {
             $auction = Auction::findOrFail((int) preg_replace('/\D/', '', $auctionId));
             $this->assertWinnerPayment($user, $auction, $amount);
+        } elseif (!app()->environment('local', 'testing')) {
+            throw new \RuntimeException('Auction payment must include auction_id');
         }
 
         if ($provider === 'sslcommerz') {

@@ -34,9 +34,10 @@ class UserController extends Controller
     public function update(Request $request, string $id)
     {
         $user = User::findOrFail((int) preg_replace('/\D/', '', $id));
-        $user->update($request->validate([
+        $data = $request->validate([
             'is_active' => 'sometimes|boolean',
-        ]));
+        ]);
+        $user->forceFill($data)->save();
 
         return $this->success(null, 'User updated');
     }

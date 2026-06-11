@@ -54,17 +54,17 @@ class FashionXSeeder extends Seeder
 
     protected function seedSettings(): void
     {
-        if (Banner::where('position', 'home')->doesntExist()) {
-            Banner::create([
+        Banner::updateOrCreate(
+            ['position' => 'home'],
+            [
                 'title' => 'Where Elegance Meets Exclusivity',
                 'subtitle' => 'Luxury Redefined',
-                'image' => 'https://images.pexels.com/photos/1045547/pexels-photo-1045547.jpeg?auto=compress&cs=tinysrgb&w=1600',
+                'image' => 'https://images.pexels.com/photos/32394174/pexels-photo-32394174.jpeg?auto=compress&cs=tinysrgb&w=1600',
                 'link' => '/pages/shop.html',
-                'position' => 'home',
                 'sort_order' => 0,
                 'is_active' => true,
-            ]);
-        }
+            ]
+        );
         Setting::setValue('site', [
             'name' => 'FashionX',
             'tagline' => 'Premium Multi-Vendor Luxury Fashion',

@@ -6,7 +6,7 @@ import { getCachedCategories, setCachedCategories } from "../utils/catalogCache.
 const CACHE_KEY = STORAGE_KEYS.DATA_CACHE;
 const CACHE_TTL = 3600000;
 /** Bump when JSON assets change (e.g. fixed image URLs) */
-const CACHE_FILE_VERSION = 3;
+const CACHE_FILE_VERSION = 4;
 
 class DataService {
   constructor() {

@@ -12,6 +12,7 @@ return [
             'client_id' => env('PAYPAL_CLIENT_ID'),
             'secret' => env('PAYPAL_SECRET'),
             'return_url' => env('PAYPAL_RETURN_URL'),
+            'webhook_id' => env('PAYPAL_WEBHOOK_ID'),
         ],
         'sslcommerz' => [
             'store_id' => env('SSLCOMMERZ_STORE_ID', ''),

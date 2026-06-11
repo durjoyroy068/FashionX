@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\ApiMessage;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -22,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Http\Middleware\HandleCors::class,
         ]);
         $middleware->throttleApi();
+        $middleware->trustProxies(at: env('TRUSTED_PROXIES', '*'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (\Illuminate\Validation\ValidationException $e, $request) {
@@ -44,20 +46,26 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->is('api/*')) {
                 return response()->json([
                     'success' => false,
-                    'message' => $e->getMessage() ?: 'Error',
+                    'message' => ApiMessage::http($e->getStatusCode(), $e->getMessage()),
                 ], $e->getStatusCode());
             }
         });
 
         $exceptions->render(function (\InvalidArgumentException $e, $request) {
             if ($request->is('api/*')) {
-                return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+                return response()->json([
+                    'success' => false,
+                    'message' => ApiMessage::from($e, 'Invalid request'),
+                ], 422);
             }
         });
 
         $exceptions->render(function (\RuntimeException $e, $request) {
             if ($request->is('api/*')) {
-                return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+                return response()->json([
+                    'success' => false,
+                    'message' => ApiMessage::from($e, 'Request failed'),
+                ], 422);
             }
         });
 
@@ -69,7 +77,10 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $exceptions->render(function (\Illuminate\Auth\Access\AuthorizationException $e, $request) {
             if ($request->is('api/*')) {
-                return response()->json(['success' => false, 'message' => $e->getMessage() ?: 'Forbidden'], 403);
+                return response()->json([
+                    'success' => false,
+                    'message' => ApiMessage::http(403, $e->getMessage()),
+                ], 403);
             }
         });
 

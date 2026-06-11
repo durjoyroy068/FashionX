@@ -117,7 +117,11 @@ function bindDelegatedEvents() {
       const btn = e.target.closest(".restore-saved");
       const p = await dataService.getProductById(btn.dataset.pid);
       if (p) {
-        await cart.add(p);
+        const res = await cart.add(p);
+        if (res?.success === false) {
+          toast.error(res.error || "Could not add to cart");
+          return;
+        }
         const list = Storage.get(STORAGE_KEYS.SAVED_FOR_LATER, []).filter(
           (i) => (i.product_id || i.productId) !== btn.dataset.pid
         );

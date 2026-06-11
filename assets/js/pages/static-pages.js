@@ -9,6 +9,7 @@ import { getPageMain } from "../utils/pageMain.js";
 import { formatPrice, formatDate } from "../utils/format.js";
 import toast from "../ui/toast.js";
 import { STOCK_IMAGES, imageFallbackAttr } from "../utils/media.js";
+import { escapeAttr, escapeHtml } from "../utils/escape.js";
 import uploadImage from "../utils/upload.js";
 
 const PLACEHOLDER_AVATAR = STOCK_IMAGES.avatar;
@@ -43,7 +44,7 @@ const pages = {
     return `<div class="container" style="padding:4rem 0;text-align:center">
       <div style="font-size:4rem;color:var(--color-success);margin-bottom:1rem">✓</div>
       <h1>Order Confirmed</h1>
-      <p style="color:var(--color-text-muted);margin:1rem 0">Order #${id || "FX-0000"}</p>
+      <p style="color:var(--color-text-muted);margin:1rem 0">Order #${escapeHtml(id || "FX-0000")}</p>
       <p style="color:var(--color-text-muted);max-width:500px;margin:0 auto 2rem">Thank you for your purchase. A confirmation email has been sent.</p>
       <div class="tracker-steps" style="max-width:600px;margin:2rem auto">
         <div class="tracker-step completed"><div class="dot">✓</div><label>Confirmed</label></div>
@@ -60,7 +61,7 @@ const pages = {
     const id = new URLSearchParams(location.search).get("id");
     return `<div class="container" style="padding:4rem 0;text-align:center">
       <h1 style="color:var(--color-gold)">Congratulations!</h1>
-      <p style="color:var(--color-text-muted);margin:1.5rem 0">You won auction ${id || ""}</p>
+      <p style="color:var(--color-text-muted);margin:1.5rem 0">You won auction ${escapeHtml(id || "")}</p>
       <a href="payment-verify.html${id ? `?id=${encodeURIComponent(id)}` : ""}" class="btn btn-primary">Complete Payment</a>
       <a href="index.html" class="btn btn-outline" style="margin-left:0.5rem">More Auctions</a>
     </div>`;
@@ -191,7 +192,7 @@ registerPage("search", async () => {
   const q = new URLSearchParams(location.search).get("q") || "";
   const products = await dataService.searchProducts(q);
   getPageMain().innerHTML = `
-    <div class="container page-hero"><h1>Search Results</h1><p>${products.length} results for "${q}"</p></div>
+    <div class="container page-hero"><h1>Search Results</h1><p>${products.length} results for "${escapeHtml(q)}"</p></div>
     <div class="container" style="padding-bottom:3rem"><div class="grid-4" id="search-grid"></div></div>`;
   renderProductGrid(products, document.getElementById("search-grid"), { basePath: ".." });
 });
@@ -203,8 +204,8 @@ registerPage("categories", async () => {
     <div class="container category-hero-grid" style="padding-bottom:3rem">
       ${categories.map((c) => `
         <a href="shop.html?category=${c.slug}" class="category-tile card">
-          <img src="${c.image}" alt="${c.name}" loading="lazy" ${imageFallbackAttr()}>
-          <div class="category-tile-overlay"><h3>${c.name}</h3><span>${c.count} items</span></div>
+          <img src="${escapeAttr(c.image)}" alt="${escapeAttr(c.name)}" loading="lazy" ${imageFallbackAttr()}>
+          <div class="category-tile-overlay"><h3>${escapeHtml(c.name)}</h3><span>${escapeHtml(c.count)} items</span></div>
         </a>`).join("")}
     </div>`;
 });
@@ -467,16 +468,44 @@ registerPage("notifications", async () => {
   if (!notes.length) {
     notes = Storage.get(STORAGE_KEYS.NOTIFICATIONS, []);
   }
+  const hasUnread = notes.some((n) => n.unread || !n.read_at);
   getPageMain().innerHTML = `
-    <div class="container page-hero"><h1>Notifications</h1></div>
-    <div class="container card" style="padding:0;max-width:700px;margin-bottom:3rem">
+    <div class="container page-hero" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+      <h1>Notifications</h1>
+      ${hasUnread && !API_CONFIG.USE_MOCK ? `<button type="button" class="btn btn-ghost btn-sm" id="mark-all-read">Mark all read</button>` : ""}
+    </div>
+    <div class="container card" style="padding:0;max-width:700px;margin-bottom:3rem" id="notifications-list">
       ${notes.length ? notes.map((n) => `
-        <div class="notification-item ${n.unread || !n.read_at ? "unread" : ""}">
+        <div class="notification-item ${n.unread || !n.read_at ? "unread" : ""}" data-id="${n.id || ""}">
           <div class="notification-icon">◆</div>
           <div><strong>${n.title}</strong><p style="color:var(--color-text-muted);font-size:0.875rem">${n.message || n.msg || n.body || ""}</p><small style="color:var(--color-text-dim)">${n.time || n.created_at || ""}</small></div>
         </div>`).join("")
         : `<div class="empty-state" style="padding:2rem"><p style="color:var(--color-text-muted)">No notifications yet.</p></div>`}
     </div>`;
+
+  document.getElementById("mark-all-read")?.addEventListener("click", async () => {
+    const res = await apiClient.post("/notifications/read-all");
+    if (res.success) {
+      toast.success("All notifications marked read");
+      location.reload();
+    } else {
+      toast.error(res.error || "Could not update notifications");
+    }
+  });
+
+  if (!API_CONFIG.USE_MOCK) {
+    document.querySelectorAll(".notification-item[data-id]").forEach((el) => {
+      el.style.cursor = "pointer";
+      el.addEventListener("click", async () => {
+        const id = el.dataset.id;
+        if (!id || !el.classList.contains("unread")) return;
+        const res = await apiClient.patch(`/notifications/${id}/read`);
+        if (res.success) {
+          el.classList.remove("unread");
+        }
+      });
+    });
+  }
 });
 
 registerPage("addresses", async () => {
@@ -493,9 +522,15 @@ registerPage("addresses", async () => {
     <div class="container page-hero"><h1>Address Book</h1></div>
     <div class="container" style="max-width:700px;padding-bottom:3rem">
       <div id="address-list">${addresses.length ? addresses.map((a) => `
-        <div class="address-card ${a.default ? "default" : ""}">
+        <div class="address-card ${a.default ? "default" : ""}" data-id="${a.id}">
           ${a.default ? '<span class="badge badge-gold default-badge">Default</span>' : ""}
-          <h3>${a.name || a.label || "Address"}</h3><p style="color:var(--color-text-muted)">${a.line1}, ${a.city} ${a.zip || a.postal_code || ""}</p>
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem">
+            <div>
+              <h3>${a.name || a.label || "Address"}</h3>
+              <p style="color:var(--color-text-muted)">${a.line1}, ${a.city} ${a.zip || a.postal_code || ""}</p>
+            </div>
+            ${!API_CONFIG.USE_MOCK ? `<button type="button" class="btn btn-ghost btn-sm delete-address" data-id="${a.id}" aria-label="Delete address">✕</button>` : ""}
+          </div>
         </div>`).join("")
         : `<div class="empty-state" style="padding:1.5rem 0"><p style="color:var(--color-text-muted)">No saved addresses yet.</p></div>`}</div>
       <form class="card" style="padding:2rem;margin-top:2rem" id="add-address">
@@ -532,6 +567,20 @@ registerPage("addresses", async () => {
     Storage.set(STORAGE_KEYS.ADDRESSES, list);
     toast.success("Address saved");
     location.reload();
+  });
+
+  document.querySelectorAll(".delete-address").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const id = btn.dataset.id;
+      if (!id || !confirm("Delete this address?")) return;
+      const res = await apiClient.delete(`/addresses/${id}`);
+      if (res.success) {
+        toast.success("Address removed");
+        location.reload();
+      } else {
+        toast.error(res.error || "Could not delete address");
+      }
+    });
   });
 });
 
@@ -671,7 +720,7 @@ registerPage("seller", async () => {
     const aRes = await apiClient.get("/seller/analytics");
     if (aRes.success) analytics = aRes.data;
     const pRes = await apiClient.get("/seller/products");
-    if (pRes.success) sellerProducts = (pRes.data || []).slice(0, 6);
+    if (pRes.success) sellerProducts = pRes.data || [];
   }
   getPageMain().innerHTML = `
     <div class="container dashboard-layout dashboard-panel-page">

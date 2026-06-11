@@ -51,7 +51,7 @@ class SellerController extends Controller
         );
 
         $vendorRequest?->update(['status' => 'approved']);
-        $user->update(['role' => \App\Enums\UserRole::Seller]);
+        $user->forceFill(['role' => \App\Enums\UserRole::Seller])->save();
         $user->syncRoles(['seller']);
 
         return $this->success(null, 'Seller approved');

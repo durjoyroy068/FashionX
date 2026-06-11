@@ -13,6 +13,8 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password as PasswordBroker;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
 
@@ -39,9 +41,8 @@ class AuthController extends Controller
             'last_name' => $data['last_name'],
             'email' => $data['email'],
             'password' => $data['password'],
-            'role' => UserRole::Customer,
-            'is_active' => true,
         ]);
+        $user->forceFill(['role' => UserRole::Customer, 'is_active' => true])->save();
 
         $user->assignRole('customer');
 
@@ -80,9 +81,18 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
+        $throttleKey = 'login:' . Str::lower($data['email']) . '|' . $request->ip();
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+
+            return $this->error("Too many login attempts. Try again in {$seconds} seconds.", 429);
+        }
+
         $user = User::where('email', $data['email'])->first();
 
         if (!$user || !Hash::check($data['password'], $user->password)) {
+            RateLimiter::hit($throttleKey, 900);
+
             return $this->error('Invalid email or password', 401);
         }
 
@@ -90,6 +100,7 @@ class AuthController extends Controller
             return $this->error('Account is disabled', 403);
         }
 
+        RateLimiter::clear($throttleKey);
         $user->tokens()->delete();
         $token = $user->createToken('fashionx')->plainTextToken;
 

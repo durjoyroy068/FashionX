@@ -1,4 +1,5 @@
 import { formatPrice } from "../utils/format.js";
+import { escapeAttr, escapeHtml } from "../utils/escape.js";
 import { getAuctionImage, getProductImage, imageFallbackAttr } from "../utils/media.js";
 import { getPagePath } from "../utils/format.js";
 import wishlist from "../modules/wishlist.js";
@@ -21,7 +22,7 @@ export function renderProductCard(product, options = {}) {
   const hasDiscount = product.discountPrice && product.discountPrice < product.price;
   const inWishlist = wishlist.has(product.id);
   const badges = (product.badges || [])
-    .map((b) => `<span class="badge badge-gold">${b}</span>`)
+    .map((b) => `<span class="badge badge-gold">${escapeHtml(b)}</span>`)
     .join("");
 
   const stockBadge =
@@ -32,10 +33,10 @@ export function renderProductCard(product, options = {}) {
         : "";
 
   return `
-    <article class="card product-card hover-lift reveal" data-product-id="${product.id}">
+    <article class="card product-card hover-lift reveal" data-product-id="${escapeAttr(product.id)}">
       <a href="${productHref}" class="product-card__link">
         <div class="product-card__media">
-          <img src="${getProductImage(product)}" alt="${product.name}" loading="lazy" width="400" height="533" ${imageFallbackAttr()}>
+          <img src="${escapeAttr(getProductImage(product))}" alt="${escapeAttr(product.name)}" loading="lazy" width="400" height="533" ${imageFallbackAttr()}>
           <div class="product-card__badges">${badges}${stockBadge}</div>
           <div class="product-card__actions">
             <button type="button" class="icon-btn wishlist-btn ${inWishlist ? "active" : ""}" 
@@ -49,8 +50,8 @@ export function renderProductCard(product, options = {}) {
           </div>
         </div>
         <div class="product-card__body">
-          <p class="product-card__brand">${product.brand}</p>
-          <h3 class="product-card__title">${product.name}</h3>
+          <p class="product-card__brand">${escapeHtml(product.brand)}</p>
+          <h3 class="product-card__title">${escapeHtml(product.name)}</h3>
           <div class="product-card__price">
             <span class="price-current">${formatPrice(price)}</span>
             ${hasDiscount ? `<span class="price-original">${formatPrice(product.price)}</span>` : ""}
@@ -88,17 +89,17 @@ export function renderAuctionCard(auction) {
   const auctionHref = `${getPagePath("bidDetail")}?id=${encodeURIComponent(auction.id)}`;
   const img = getAuctionImage(auction);
   return `
-    <article class="card auction-card hover-lift reveal" data-auction-id="${auction.id}">
+    <article class="card auction-card hover-lift reveal" data-auction-id="${escapeAttr(auction.id)}">
       <a href="${auctionHref}">
         <div class="product-card__media">
-          <img src="${img}" alt="${auction.title}" loading="lazy" ${imageFallbackAttr()}>
+          <img src="${escapeAttr(img)}" alt="${escapeAttr(auction.title)}" loading="lazy" ${imageFallbackAttr()}>
           <div class="product-card__badges">
             <span class="live-pulse">Live</span>
           </div>
         </div>
         <div class="product-card__body">
-          <p class="product-card__brand">${auction.brand}</p>
-          <h3 class="product-card__title">${auction.title}</h3>
+          <p class="product-card__brand">${escapeHtml(auction.brand)}</p>
+          <h3 class="product-card__title">${escapeHtml(auction.title)}</h3>
           <div class="product-card__price">
             <span class="price-current" data-current-bid="${auction.id}">
               ${formatPrice(auction.currentBid || auction.startingBid)}

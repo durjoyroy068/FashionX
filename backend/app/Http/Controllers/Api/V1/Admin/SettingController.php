@@ -22,11 +22,18 @@ class SettingController extends Controller
 
     public function update(Request $request)
     {
+        $allowed = ['site', 'seo', 'social'];
         $data = $request->validate([
             'settings' => 'required|array',
+            'settings.site' => 'sometimes|array',
+            'settings.seo' => 'sometimes|array',
+            'settings.social' => 'sometimes|array',
         ]);
 
         foreach ($data['settings'] as $key => $value) {
+            if (!in_array($key, $allowed, true) || !is_array($value)) {
+                continue;
+            }
             Setting::setValue($key, $value);
         }
 

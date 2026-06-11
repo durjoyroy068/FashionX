@@ -145,7 +145,11 @@ function initProductActions() {
       e.stopPropagation();
       const product = await dataService.getProductById(cartBtn.dataset.productId);
       if (product) {
-        await cart.add(product);
+        const res = await cart.add(product);
+        if (res?.success === false) {
+          toast.error(res.error || "Could not add to cart");
+          return;
+        }
         document.getElementById("cart-icon")?.classList.add("cart-bounce");
         setTimeout(() => document.getElementById("cart-icon")?.classList.remove("cart-bounce"), 500);
         toast.success("Added to cart");
@@ -202,7 +206,11 @@ function openQuickView(product) {
   overlay.querySelector("[data-modal-close]")?.addEventListener("click", () => closeQuickView(overlay));
   overlay.addEventListener("click", (ev) => { if (ev.target === overlay) closeQuickView(overlay); });
   overlay.querySelector(".qv-add-cart")?.addEventListener("click", async () => {
-    await cart.add(product);
+    const res = await cart.add(product);
+    if (res?.success === false) {
+      toast.error(res.error || "Could not add to cart");
+      return;
+    }
     toast.success("Added to cart");
     closeQuickView(overlay);
   });

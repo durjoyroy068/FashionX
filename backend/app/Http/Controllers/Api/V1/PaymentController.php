@@ -38,8 +38,18 @@ class PaymentController extends Controller
             return response()->json(['success' => false, 'message' => 'Invalid provider'], 422);
         }
 
-        $result = $this->payments->handleWebhook($provider, $request->all());
+        $context = [
+            'raw_body' => $request->getContent(),
+            'headers' => $request->headers->all(),
+            'payload' => $request->all(),
+            'ip' => $request->ip(),
+        ];
 
-        return response()->json(['success' => $result['success'] ?? false]);
+        $result = $this->payments->handleWebhook($provider, $context);
+
+        return response()->json(
+            ['success' => $result['success'] ?? false],
+            ($result['success'] ?? false) ? 200 : 403
+        );
     }
 }

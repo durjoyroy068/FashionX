@@ -91,8 +91,10 @@ function Test-Post($label, $path, $token, $jsonBody) {
     return $null
 }
 
-$prods = curl.exe -s "$base/products?per_page=1" -H "Authorization: Bearer $buyerToken" | ConvertFrom-Json
-$productId = $prods.data[0].id
+$prods = curl.exe -s "$base/products?per_page=50" -H "Authorization: Bearer $buyerToken" | ConvertFrom-Json
+$inStock = @($prods.data | Where-Object { ($_.stock -gt 0) -or ($_.in_stock -eq $true) })
+if (-not $inStock.Count) { $script:failures += "No in-stock products for cart E2E"; $inStock = @($prods.data) }
+$productId = $inStock[0].id
 Test-Post "[BUYER] cart add" "/cart" $buyerToken "{`"product_id`":`"$productId`",`"quantity`":1}"
 $checkoutRes = Test-Post "[BUYER] checkout" "/checkout/cart" $buyerToken '{"shipping":{"line1":"123 QA St","city":"Dhaka","postal_code":"1200","country_code":"BD"},"payment_method":"card","card_last4":"4242"}'
 if ($checkoutRes) {
